@@ -2694,11 +2694,7 @@
       attendance: []
     };
 
-    // Legacy mock data removed. Now using backend API.
-
-    // ═══════════════════════════════════════════════════════
     // NAVIGATION
-    // ═══════════════════════════════════════════════════════
     function goTo(pageId) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
@@ -2742,9 +2738,9 @@
       return data;
     }
 
-    // ═══════════════════════════════════════════════════════
+    
     // AUTH
-    // ═══════════════════════════════════════════════════════
+   
     async function doLogin() {
       const userId = document.getElementById('login-userid').value.trim();
       const password = document.getElementById('login-password').value;
@@ -2783,9 +2779,9 @@
       goTo('splash');
     }
 
-    // ═══════════════════════════════════════════════════════
+ 
     // INIT DASHBOARDS
-    // ═══════════════════════════════════════════════════════
+
     function initDashboard(role) {
       const u = state.user;
       if (role === 'student') {
@@ -2822,9 +2818,9 @@
       }
     }
 
-    // ═══════════════════════════════════════════════════════
+   
     // STUDENT FUNCTIONS
-    // ═══════════════════════════════════════════════════════
+   
     function showStudentSection(sec) {
       document.querySelectorAll('#student-dash .section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('#student-sidebar .nav-item').forEach(n => n.classList.remove('active'));
@@ -2860,7 +2856,7 @@
         document.getElementById('att-absent').textContent = data.totalDays - data.presentDays;
         document.getElementById('att-pct-detail').textContent = data.percentage + '%';
 
-        // Simplified calendar rendering for current month
+        //  calendar rendering for current month
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
         const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -3103,9 +3099,8 @@
     <div class="info-item"><div class="info-label">${l}</div><div class="info-value">${v}</div></div>`).join('');
     }
 
-    // ═══════════════════════════════════════════════════════
+  
     // ADMIN FUNCTIONS
-    // ═══════════════════════════════════════════════════════
     function showAdminSection(sec) {
       document.querySelectorAll('#admin-dash .section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('#admin-dash .nav-item').forEach(n => n.classList.remove('active'));

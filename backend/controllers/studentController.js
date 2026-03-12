@@ -5,7 +5,7 @@ const Outgoing = require('../models/Outgoing');
 const HomeGoing = require('../models/HomeGoing');
 const Notification = require('../models/Notification');
 
-// Calculate distance between two GPS coordinates (Haversine formula)
+// Calculate distance between two GPS coordinates 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371000; // Earth's radius in meters
   const φ1 = lat1 * Math.PI / 180;
@@ -17,7 +17,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// @desc    Get student profile
+//  Get student profile
 exports.getProfile = async (req, res) => {
   try {
     const student = await Student.findOne({ userId: req.user.userId });
@@ -28,7 +28,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// @desc    Update student profile
+// Update student profile
 exports.updateProfile = async (req, res) => {
   try {
     const { phone, address, city, state, medicalInfo } = req.body;
@@ -43,7 +43,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Get attendance
+//  Get attendance
 exports.getAttendance = async (req, res) => {
   try {
     const { month, year } = req.query;
@@ -65,7 +65,7 @@ exports.getAttendance = async (req, res) => {
   }
 };
 
-// @desc    Apply mess cut
+//  Apply mess cut
 exports.applyMessCut = async (req, res) => {
   try {
     const { fromDate, toDate, reason } = req.body;
@@ -90,7 +90,7 @@ exports.applyMessCut = async (req, res) => {
   }
 };
 
-// @desc    Get mess cut requests
+//  Get mess cut requests
 exports.getMessCuts = async (req, res) => {
   try {
     const messCuts = await MessCut.find({ studentId: req.user.userId }).sort({ createdAt: -1 });
@@ -100,7 +100,7 @@ exports.getMessCuts = async (req, res) => {
   }
 };
 
-// @desc    Mark outgoing
+// Mark outgoing
 exports.markOutgoing = async (req, res) => {
   try {
     const { reason, expectedReturnTime, latitude, longitude } = req.body;
@@ -122,7 +122,7 @@ exports.markOutgoing = async (req, res) => {
   }
 };
 
-// @desc    Mark home going
+// Mark home going
 exports.markHomeGoing = async (req, res) => {
   try {
     const { fromDate, toDate, reason, latitude, longitude } = req.body;
@@ -145,7 +145,7 @@ exports.markHomeGoing = async (req, res) => {
   }
 };
 
-// @desc    Mark return to hostel
+//  Mark return to hostel
 exports.markReturn = async (req, res) => {
   try {
     const { type, requestId, latitude, longitude } = req.body;
@@ -191,7 +191,7 @@ exports.markReturn = async (req, res) => {
   }
 };
 
-// @desc    Get outgoing history
+//  Get outgoing history
 exports.getOutgoings = async (req, res) => {
   try {
     const outgoings = await Outgoing.find({ studentId: req.user.userId }).sort({ createdAt: -1 });
@@ -201,7 +201,7 @@ exports.getOutgoings = async (req, res) => {
   }
 };
 
-// @desc    Get home going history
+//  Get home going history
 exports.getHomeGoings = async (req, res) => {
   try {
     const homeGoings = await HomeGoing.find({ studentId: req.user.userId }).sort({ createdAt: -1 });
@@ -211,7 +211,7 @@ exports.getHomeGoings = async (req, res) => {
   }
 };
 
-// @desc    Get notifications
+// Get notifications
 exports.getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({

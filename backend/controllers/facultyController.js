@@ -5,7 +5,7 @@ const HomeGoing = require('../models/HomeGoing');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
-// @desc    Get faculty profile
+//  Get faculty profile
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId }).select('-password');
@@ -15,7 +15,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// @desc    Get students
+// Get students
 exports.getStudents = async (req, res) => {
   try {
     const students = await Student.find({ isActive: true }).sort({ name: 1 });
@@ -25,7 +25,7 @@ exports.getStudents = async (req, res) => {
   }
 };
 
-// @desc    Mark attendance
+// Mark attendance
 exports.markAttendance = async (req, res) => {
   try {
     const { studentId, date, status, session } = req.body;
@@ -46,7 +46,7 @@ exports.markAttendance = async (req, res) => {
   }
 };
 
-// @desc    Get mess cut requests
+//  Get mess cut requests
 exports.getMessCuts = async (req, res) => {
   try {
     const messCuts = await MessCut.find({ status: 'pending' }).sort({ createdAt: -1 });
@@ -56,7 +56,7 @@ exports.getMessCuts = async (req, res) => {
   }
 };
 
-// @desc    Get home going requests
+// Get home going requests
 exports.getHomeGoings = async (req, res) => {
   try {
     const homeGoings = await HomeGoing.find().sort({ createdAt: -1 });
@@ -66,7 +66,7 @@ exports.getHomeGoings = async (req, res) => {
   }
 };
 
-// @desc    Get notifications
+// Get notifications
 exports.getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({

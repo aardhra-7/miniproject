@@ -6,7 +6,7 @@ const Outgoing = require('../models/Outgoing');
 const HomeGoing = require('../models/HomeGoing');
 const Notification = require('../models/Notification');
 
-// @desc    Get dashboard statistics
+//  Get dashboard statistics
 exports.getDashboardStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({ isActive: true });
@@ -33,7 +33,7 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-// @desc    Get all users
+//  Get all users
 exports.getAllUsers = async (req, res) => {
   try {
     const { role, search } = req.query;
@@ -50,7 +50,7 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// @desc    Create user
+// Create user
 exports.createUser = async (req, res) => {
   try {
     const { userId, password, role, name, email, phone } = req.body;
@@ -65,7 +65,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// @desc    Update user
+//  Update user
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -79,7 +79,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// @desc    Toggle user status
+//     Toggle user status
 exports.toggleUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -93,7 +93,7 @@ exports.toggleUserStatus = async (req, res) => {
   }
 };
 
-// @desc    Delete user
+//   Delete user
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -104,7 +104,7 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// @desc    Get all students
+//   Get all students
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await Student.find().sort({ name: 1 });
@@ -114,7 +114,7 @@ exports.getAllStudents = async (req, res) => {
   }
 };
 
-// @desc    Get outgoing records
+//  Get outgoing records
 exports.getOutgoings = async (req, res) => {
   try {
     const outgoings = await Outgoing.find().sort({ createdAt: -1 }).limit(100);
@@ -124,7 +124,7 @@ exports.getOutgoings = async (req, res) => {
   }
 };
 
-// @desc    Get home going records
+//   Get home going records
 exports.getHomeGoings = async (req, res) => {
   try {
     const homeGoings = await HomeGoing.find().sort({ createdAt: -1 }).limit(100);
@@ -134,7 +134,7 @@ exports.getHomeGoings = async (req, res) => {
   }
 };
 
-// @desc    Get attendance records
+// Get attendance records
 exports.getAttendance = async (req, res) => {
   try {
     const { date, studentId } = req.query;
@@ -148,7 +148,7 @@ exports.getAttendance = async (req, res) => {
   }
 };
 
-// @desc    Send notification
+//   Send notification
 exports.sendNotification = async (req, res) => {
   try {
     const { title, message, type, targetRole, priority } = req.body;
@@ -163,7 +163,7 @@ exports.sendNotification = async (req, res) => {
   }
 };
 
-// @desc    Get all mess cuts
+//     Get all mess cuts
 exports.getMessCuts = async (req, res) => {
   try {
     const messCuts = await MessCut.find().sort({ createdAt: -1 });
@@ -173,7 +173,7 @@ exports.getMessCuts = async (req, res) => {
   }
 };
 
-// @desc    Approve/Reject mess cut (admin)
+// Approve/Reject mess cut
 exports.updateMessCut = async (req, res) => {
   try {
     const { id } = req.params;

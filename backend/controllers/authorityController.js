@@ -5,7 +5,7 @@ const HomeGoing = require('../models/HomeGoing');
 const Outgoing = require('../models/Outgoing');
 const Notification = require('../models/Notification');
 
-// @desc    Get pending requests
+// Get pending requests
 exports.getPendingRequests = async (req, res) => {
   try {
     const homeGoings = await HomeGoing.find({ status: 'pending' }).sort({ createdAt: -1 });
@@ -17,7 +17,7 @@ exports.getPendingRequests = async (req, res) => {
   }
 };
 
-// @desc    Approve/Reject home going
+//  Approve/Reject home going
 exports.updateHomeGoing = async (req, res) => {
   try {
     const { id } = req.params;
@@ -31,7 +31,7 @@ exports.updateHomeGoing = async (req, res) => {
   }
 };
 
-// @desc    Approve/Reject mess cut
+//  Approve/Reject mess cut
 exports.updateMessCut = async (req, res) => {
   try {
     const { id } = req.params;
@@ -45,7 +45,7 @@ exports.updateMessCut = async (req, res) => {
   }
 };
 
-// @desc    Mark attendance
+//  Mark attendance
 exports.markAttendance = async (req, res) => {
   try {
     const { studentId, date, status, session, remarks } = req.body;
@@ -78,7 +78,7 @@ exports.markAttendance = async (req, res) => {
   }
 };
 
-// @desc    Get attendance by date/wing
+// Get attendance by date/wing
 exports.getAttendance = async (req, res) => {
   try {
     const { date, wing } = req.query;
@@ -94,7 +94,7 @@ exports.getAttendance = async (req, res) => {
   }
 };
 
-// @desc    Get all students for monitoring
+// Get all students for monitoring
 exports.getStudents = async (req, res) => {
   try {
     const students = await Student.find().sort({ name: 1 });
@@ -104,7 +104,7 @@ exports.getStudents = async (req, res) => {
   }
 };
 
-// @desc    Send notification
+// Send notification
 exports.sendNotification = async (req, res) => {
   try {
     const { title, message, type, targetRole, priority } = req.body;
@@ -121,7 +121,7 @@ exports.sendNotification = async (req, res) => {
   }
 };
 
-// @desc    Get reports
+//  Get reports
 exports.getReports = async (req, res) => {
   try {
     const { from, to } = req.query;

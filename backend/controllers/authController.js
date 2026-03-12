@@ -9,8 +9,7 @@ const generateToken = (userId, role) => {
   });
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
+// Login user
 exports.login = async (req, res) => {
   try {
     const { userId, password, role } = req.body;
@@ -63,8 +62,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// @desc    Get current user
-// @route   GET /api/auth/me
+//  Get current user
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId }).select('-password');
@@ -77,8 +75,7 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// @desc    Seed initial users
-// @route   POST /api/auth/seed
+//   Seed initial users
 exports.seedUsers = async (req, res) => {
   try {
     const existingAdmin = await User.findOne({ userId: 'ADM-001' });
