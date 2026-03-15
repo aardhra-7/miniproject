@@ -9,33 +9,28 @@ const HostelSettings = require('../models/HostelSettings');
 // Get dashboard statistics
 exports.getDashboardStats = async (req, res) => {
   try {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    // 1. Today's Activities
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
-    // 1. Weekly Outgoing Summary
-    const totalOutgoing = await Outgoing.countDocuments({ createdAt: { $gte: oneWeekAgo } });
-    const approvedOutgoing = await Outgoing.countDocuments({
-      createdAt: { $gte: oneWeekAgo },
+    const todayOutgoings = await Outgoing.countDocuments({ createdAt: { $gte: startOfToday } });
+    const todayHomeGoings = await HomeGoing.countDocuments({ createdAt: { $gte: startOfToday } });
+    const activeMessCuts = await MessCut.countDocuments({
+      startDate: { $lte: new Date() },
+      endDate: { $gte: new Date() },
       status: 'approved'
     });
-    const returnedStudents = await Outgoing.countDocuments({
-      createdAt: { $gte: oneWeekAgo },
-      returnStatus: 'returned'
-    });
 
-    // 2. Request Distribution
-    const pendingApprovals = (await Outgoing.countDocuments({ status: 'pending' })) +
-      (await HomeGoing.countDocuments({ status: 'pending' })) +
-      (await MessCut.countDocuments({ status: 'pending' }));
-
-    const outgoingCount = await Outgoing.countDocuments();
-    const homegoingCount = await HomeGoing.countDocuments();
+    // 2. Pending Requests Summary
+    const pendingMessCuts = await MessCut.countDocuments({ status: 'pending' });
+    const pendingHomeGoings = await HomeGoing.countDocuments({ status: 'pending' });
+    const totalPending = pendingMessCuts + pendingHomeGoings;
 
     res.json({
       success: true,
       stats: {
-        weekly: { totalOutgoing, approvedOutgoing, returnedStudents },
-        distribution: { outgoingCount, homegoingCount, pendingApprovals }
+        today: { todayOutgoings, todayHomeGoings, activeMessCuts },
+        pending: { pendingMessCuts, pendingHomeGoings, totalPending }
       }
     });
   } catch (error) {

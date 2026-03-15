@@ -9,103 +9,198 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   template: `
-    <div class="login-page">
+    <div class="login-page animate-fade-in">
       <div class="login-card">
-        <div class="login-logo">Stay<span>Sphere</span></div>
-        <div class="role-badge">{{ role | titlecase }}</div>
-        <div class="login-title">Welcome Back</div>
-        <div class="login-sub">Sign in to access your dashboard</div>
+        <div class="login-header">
+          <div class="login-logo">Stay<span>Sphere</span></div>
+          <div class="role-badge">{{ role | titlecase }} Access</div>
+        </div>
+        
+        <div class="login-intro">
+          <h2>Welcome Back</h2>
+          <p>Login to manage your hostel activities</p>
+        </div>
         
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
           <div class="form-group">
-            <label>User ID</label>
-            <input class="form-control" formControlName="userId" type="text" placeholder="Enter your User ID" />
+            <label><i class="bi bi-person mr-10"></i> User ID</label>
+            <input class="form-control" formControlName="userId" type="text" placeholder="Enter your ID" />
           </div>
+          
           <div class="form-group">
-            <label>Password</label>
-            <input class="form-control" formControlName="password" type="password" placeholder="Enter your password" />
-            <div class="forgot" (click)="showForgotModal = true">Reset Password?</div>
+            <div class="label-row">
+              <label><i class="bi bi-lock mr-10"></i> Password</label>
+              <div class="forgot" (click)="showForgotModal = true">Forgot?</div>
+            </div>
+            <input class="form-control" formControlName="password" type="password" placeholder="••••••••" />
           </div>
-          <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
-          <button class="btn-login" type="submit" [disabled]="loginForm.invalid || isLoading">
-            {{ isLoading ? 'Logging in...' : 'Login →' }}
+          
+          <div *ngIf="errorMessage" class="error-msg">
+            <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+          </div>
+          
+          <button class="primary-btn btn-login" type="submit" [disabled]="loginForm.invalid || isLoading">
+            {{ isLoading ? 'Authenticating...' : 'Login to Dashboard' }} <i class="bi bi-chevron-right ml-10"></i>
           </button>
         </form>
 
         <div *ngIf="role === 'admin'" class="admin-reg">
-          <a routerLink="/register-admin">Admin Registration</a>
+          New hostel? <a routerLink="/register-admin">Register Administrator</a>
         </div>
         
-        <button class="btn-back" (click)="goBack()">← Back to Role Selection</button>
+        <button class="btn-back" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i> Back to roles
+        </button>
       </div>
 
-      <!-- Forgot Password Modal -->
-      <div class="modal-overlay" *ngIf="showForgotModal">
-        <div class="modal">
+      <!-- Forgot Password  -->
+      <div class="modal-overlay" *ngIf="showForgotModal" (click)="showForgotModal = false">
+        <div class="modal animate-fade-in" (click)="$event.stopPropagation()">
           <h3>Reset Password</h3>
-          <p>Enter your registered email to receive a reset link.</p>
-          <input type="email" class="form-control" [(ngModel)]="resetEmail" [ngModelOptions]="{standalone: true}" placeholder="Enter your email" />
-          <div *ngIf="resetMsg" [class.error-msg]="isResetError" [class.success-msg]="!isResetError">{{ resetMsg }}</div>
+          <p>Enter your registered email to receive a secure reset link.</p>
+          <div class="form-group mt-20">
+             <input type="email" class="form-control" [(ngModel)]="resetEmail" [ngModelOptions]="{standalone: true}" placeholder="yourname@example.com" />
+          </div>
+          <div *ngIf="resetMsg" [class.error-msg]="isResetError" [class.success-msg]="!isResetError">
+            <i class="bi" [class.bi-check-circle]="!isResetError" [class.bi-exclamation-circle]="isResetError"></i> {{ resetMsg }}
+          </div>
           <div class="modal-actions">
-            <button class="btn-back" (click)="showForgotModal = false">Cancel</button>
-            <button class="btn-login" (click)="onForgotSubmit()" [disabled]="!resetEmail">Send Link</button>
+            <button class="secondary-btn" (click)="showForgotModal = false">Cancel</button>
+            <button class="primary-btn" (click)="onForgotSubmit()" [disabled]="!resetEmail">Send Link</button>
           </div>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    /* ... existing styles ... */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--background);
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .login-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .login-logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .login-logo span { color: var(--text-dark); }
+
+    .role-badge {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .login-intro { margin-bottom: 32px; }
+    .login-intro h2 { font-size: 24px; color: var(--text-dark); }
+    .login-intro p { color: var(--text-light); font-size: 14px; margin-top: 4px; }
+
+    .form-group { margin-bottom: 24px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+
+    .label-row { display: flex; justify-content: space-between; align-items: center; }
+    .forgot { color: var(--primary); font-size: 13px; cursor: pointer; font-weight: 600; }
+
+    .btn-login { width: 100%; margin-top: 10px; padding: 16px; font-size: 16px; }
+
     .admin-reg {
       text-align: center;
-      margin-top: 16px;
-      font-size: 13px;
+      margin-top: 24px;
+      font-size: 14px;
+      color: var(--text-light);
     }
-    .admin-reg a {
-      color: var(--primary);
-      text-decoration: none;
+    .admin-reg a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+    .btn-back {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text-light);
+      font-size: 14px;
       font-weight: 600;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: color 0.2s;
     }
+    .btn-back:hover { color: var(--primary); }
+
+    .error-msg {
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .success-msg {
+      background: #dcfce7;
+      color: #16a34a;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Modal Styles */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 1000;
+      padding: 20px;
     }
     .modal {
-      background: var(--card);
-      padding: 32px;
-      border-radius: 20px;
-      max-width: 400px;
-      width: 90%;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 24px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
-    .modal h3 { margin-bottom: 8px; font-weight: 700; }
-    .modal p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
-    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-    .success-msg { color: var(--success); font-size: 13px; margin: 10px 0; }
+    .modal h3 { font-size: 20px; margin-bottom: 12px; }
+    .modal p { color: var(--text-light); font-size: 14px; line-height: 1.6; }
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
     
-    /* Copy over the rest of the styles from original... */
-    .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); }
-    .login-card { background: var(--card); border-radius: 24px; padding: 40px; width: 100%; max-width: 420px; box-shadow: var(--shadow); }
-    .login-logo { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
-    .login-logo span { color: var(--accent); }
-    .role-badge { display: inline-block; background: var(--primary-light); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 24px; text-transform: uppercase; letter-spacing: .5px; }
-    .login-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-    .login-sub { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-    .form-control { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 14px; outline: none; transition: border-color .2s; }
-    .form-control:focus { border-color: var(--primary); }
-    .forgot { text-align: right; font-size: 12px; color: var(--primary); cursor: pointer; margin-top: 6px; }
-    .btn-login { width: 100%; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; padding: 14px; border-radius: 12px; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .2s; margin-top: 10px; }
-    .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
-    .btn-back { width: 100%; background: transparent; border: 2px solid var(--border); color: var(--muted); padding: 12px; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 16px; transition: all .2s; }
-    .btn-back:hover { border-color: var(--primary); color: var(--primary); }
-    .error-msg { color: var(--danger); font-size: 13px; margin-bottom: 10px; }
+    .ml-10 { margin-left: 10px; }
+    .mr-10 { margin-right: 10px; }
   `]
 })
 export class LoginComponent implements OnInit {
@@ -141,7 +236,7 @@ export class LoginComponent implements OnInit {
       this.authService.login({ ...this.loginForm.value, role: this.role }).subscribe({
         next: () => this.router.navigate([`/${this.role}`]),
         error: (err) => {
-          this.errorMessage = err.error?.message || 'Login failed.';
+          this.errorMessage = err.error?.message || 'Invalid User ID or Password.';
           this.isLoading = false;
         }
       });
@@ -151,9 +246,8 @@ export class LoginComponent implements OnInit {
   onForgotSubmit() {
     this.authService.forgotPassword(this.resetEmail).subscribe({
       next: (res) => {
-        this.resetMsg = 'Success! Reset link sent to your email.';
+        this.resetMsg = 'Check your inbox! We sent a reset link.';
         this.isResetError = false;
-        console.log('Mock Token:', res.token);
       },
       error: (err) => {
         this.resetMsg = err.error?.message || 'Email not found.';

@@ -58,7 +58,7 @@ import { AuthService } from '../../../services/auth.service';
 
               <div class="card-footer">
                  <div class="meta-row">
-                    <span class="blood">🩸 {{ f.bloodGroup || '—' }}</span>
+                    <span class="blood"> {{ f.bloodGroup || '—' }}</span>
                     <span class="id">#{{ f.userId }}</span>
                  </div>
               </div>

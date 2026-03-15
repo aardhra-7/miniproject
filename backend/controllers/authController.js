@@ -56,7 +56,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// Admin Registration — only one admin per hostel
+// Admin Registration 
 exports.registerAdmin = async (req, res) => {
   try {
     const { userId, password, name, email, phone, hostelName } = req.body;
@@ -86,7 +86,7 @@ exports.registerAdmin = async (req, res) => {
       hostelName
     });
 
-    // Create default hostel settings
+    // default hostel settings
     await HostelSettings.create({
       hostelName,
       admin: user._id,
@@ -122,7 +122,7 @@ exports.forgotPassword = async (req, res) => {
 
     await user.save();
 
-    // Create reset url
+    // Create reset password url
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
     const message = `

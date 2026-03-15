@@ -1,104 +1,138 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
-    selector: 'app-splash',
-    standalone: true,
-    imports: [CommonModule, RouterModule],
-    template: `
+  selector: 'app-splash',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
     <div class="splash-container">
-      <div class="splash-content">
-        <div class="splash-emoji">🏠</div>
-        <div class="splash-logo">Stay<span>Sphere</span></div>
-        <div class="splash-sub">Smart Hostel Management System</div>
-        <div class="splash-tagline">GOVERNMENT ENGINEERING COLLEGE IDUKKI</div>
-        <button class="btn-splash" (click)="getStarted()">Get Started →</button>
+      <div class="glass-bg"></div>
+      <div class="splash-content animate-fade-in">
+        <div class="logo-wrapper">
+          <i class="bi bi-buildings-fill splash-icon"></i>
+          <h1 class="splash-logo">stay<span>Sphere</span></h1>
+        </div>
+        <p class="splash-tagline">Redefining Hostel living</p>
+        
+        <div class="actions">
+          <button class="primary-btn splash-btn" (click)="getStarted()">
+            Get Started <i class="bi bi-arrow-right-short"></i>
+          </button>
+        </div>
       </div>
+      
+    
     </div>
   `,
-    styles: [`
+  styles: [`
     .splash-container {
       height: 100vh;
-      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1a56db 100%);
+      background-color: #0c0a1f;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.1) 0px, transparent 50%);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-direction: column;
       position: relative;
       overflow: hidden;
+      color: white;
     }
 
-    .splash-container::before {
-      content: '';
+    .glass-bg {
       position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 30% 70%, rgba(14, 165, 233, .2) 0%, transparent 60%),
-                  radial-gradient(circle at 80% 20%, rgba(139, 92, 246, .15) 0%, transparent 50%);
+      width: 400px;
+      height: 400px;
+      background: var(--primary);
+      filter: blur(120px);
+      opacity: 0.2;
+      border-radius: 50%;
+      z-index: 0;
     }
 
     .splash-content {
       text-align: center;
       position: relative;
-      z-index: 1;
+      z-index: 10;
+      padding: 0 20px;
     }
 
-    .splash-emoji {
-      font-size: 80px;
-      margin-bottom: 16px;
+    .logo-wrapper {
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .splash-icon {
+      font-size: 64px;
+      background: linear-gradient(135deg, #fff, var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
     }
 
     .splash-logo {
-      font-family: 'Outfit', sans-serif;
-      font-size: 52px;
+      font-size: 56px;
       font-weight: 800;
-      color: #fff;
-      letter-spacing: -1px;
+      letter-spacing: -2px;
+      margin: 0;
     }
 
     .splash-logo span {
-      color: #60a5fa;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .splash-sub {
-      color: rgba(255, 255, 255, .7);
-      font-size: 15px;
-      letter-spacing: 3px;
+    .splash-tagline {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 12px;
+      font-weight: 500;
+    }
+
+    .location-tag {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 2px;
       text-transform: uppercase;
       margin-top: 8px;
     }
 
-    .splash-tagline {
-      color: rgba(255, 255, 255, .5);
-      font-size: 13px;
-      margin-top: 6px;
-    }
-
-    .btn-splash {
-      background: linear-gradient(135deg, #1a56db, #0ea5e9);
-      color: #fff;
-      border: none;
-      padding: 16px 48px;
+    .splash-btn {
+      margin-top: 48px;
+      padding: 16px 40px;
+      font-size: 18px;
       border-radius: 50px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 40px;
-      box-shadow: 0 8px 32px rgba(26, 86, 219, .4);
-      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 20px 40px rgba(124, 58, 237, 0.3);
     }
 
-    .btn-splash:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(26, 86, 219, .5);
+    .footer-note {
+      position: absolute;
+      bottom: 40px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 1px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
   `]
 })
 export class SplashComponent {
-    constructor(private router: Router) { }
+  constructor(private router: Router) { }
 
-    getStarted() {
-        this.router.navigate(['/role-select']);
-    }
+  getStarted() {
+    this.router.navigate(['/role-select']);
+  }
 }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../../components/topbar/topbar.component';
 import { AuthService } from '../../../services/auth.service';
@@ -108,10 +109,6 @@ import { AuthService } from '../../../services/auth.service';
                     <label>To Date</label>
                     <input type="date" class="form-control" [(ngModel)]="messCutForm.endDate" />
                   </div>
-                  <div class="form-group full-width">
-                    <label>Reason</label>
-                    <textarea class="form-control" [(ngModel)]="messCutForm.reason" rows="2"></textarea>
-                  </div>
                 </div>
                 <button class="btn-primary mt-12" (click)="submitMessCut()">Submit Request</button>
               </div>
@@ -122,20 +119,18 @@ import { AuthService } from '../../../services/auth.service';
                     <thead>
                       <tr>
                         <th>Period</th>
-                        <th>Reason</th>
                         <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr *ngFor="let m of messCutHistory">
                         <td>{{ m.startDate | date:'dd MMM' }} - {{ m.endDate | date:'dd MMM' }}</td>
-                        <td>{{ m.reason }}</td>
                         <td>
                           <span [class]="'badge ' + m.status">{{ m.status | titlecase }}</span>
                         </td>
                       </tr>
                       <tr *ngIf="messCutHistory.length === 0">
-                        <td colspan="3" class="empty-td">No requests found.</td>
+                        <td colspan="2" class="empty-td">No requests found.</td>
                       </tr>
                     </tbody>
                   </table>
@@ -153,16 +148,8 @@ import { AuthService } from '../../../services/auth.service';
                     <input type="date" class="form-control" [(ngModel)]="homeGoingForm.leaveDate" />
                   </div>
                   <div class="form-group">
-                    <label>Return Date</label>
-                    <input type="date" class="form-control" [(ngModel)]="homeGoingForm.returnDate" />
-                  </div>
-                  <div class="form-group">
                     <label>Destination</label>
                     <input type="text" class="form-control" placeholder="Place" [(ngModel)]="homeGoingForm.place" />
-                  </div>
-                  <div class="form-group">
-                    <label>Reason</label>
-                    <input type="text" class="form-control" placeholder="Reason" [(ngModel)]="homeGoingForm.reason" />
                   </div>
                 </div>
                 <button class="btn-primary mt-12" (click)="submitHomeGoing()">Mark Home Going</button>
@@ -174,20 +161,16 @@ import { AuthService } from '../../../services/auth.service';
                     <thead>
                       <tr>
                         <th>Leave Date</th>
-                        <th>Return Date</th>
                         <th>Destination</th>
-                        <th>Reason</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr *ngFor="let h of homeGoingHistory">
                         <td>{{ h.leaveDate | date:'mediumDate' }}</td>
-                        <td>{{ h.returnDate | date:'mediumDate' }}</td>
                         <td>{{ h.place }}</td>
-                        <td>{{ h.reason }}</td>
                       </tr>
                       <tr *ngIf="homeGoingHistory.length === 0">
-                        <td colspan="4" class="empty-td">No entries found.</td>
+                        <td colspan="2" class="empty-td">No entries found.</td>
                       </tr>
                     </tbody>
                   </table>
@@ -292,10 +275,19 @@ export class FacultyDashboardComponent implements OnInit {
   messCutForm = { startDate: '', endDate: '', reason: '' };
   homeGoingForm = { leaveDate: '', returnDate: '', place: '', reason: '' };
 
-  constructor(private http: HttpClient, private auth: AuthService) { }
+  constructor(private http: HttpClient, private auth: AuthService, private route: ActivatedRoute) { }
 
   ngOnInit() {
     this.loadProfile();
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.activeTab = params['tab'];
+        if (this.activeTab === 'attendance') this.loadAttendance();
+        if (this.activeTab === 'mess-cut') this.loadMessCuts();
+        if (this.activeTab === 'home-going') this.loadHomeGoings();
+        if (this.activeTab === 'notifications') this.loadNotifications();
+      }
+    });
   }
 
   get headers() {

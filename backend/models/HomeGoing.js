@@ -14,7 +14,7 @@ const homeGoingSchema = new mongoose.Schema({
   },
   time: String,
   place: String,
-  reason: String, // Kept for history though not strictly requested in form
+  reason: String,
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected', 'active', 'returned'],

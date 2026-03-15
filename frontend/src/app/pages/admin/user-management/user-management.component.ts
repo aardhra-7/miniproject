@@ -19,7 +19,7 @@ import { AuthService } from '../../../services/auth.service';
 
           <div class="page-header">
             <h1>User Management</h1>
-            <p>Add, edit, and manage all system users by role.</p>
+            <p> manage all system users </p>
             <button class="btn-primary" (click)="openAddModal()">+ Add User</button>
           </div>
 
@@ -44,21 +44,23 @@ import { AuthService } from '../../../services/auth.service';
                   <th>Name</th>
                   <th>Role</th>
                   <th>Email</th>
-                  <th>Dept / Room</th>
+                  <th>Department</th>
+                  <th>Room</th>
                   <th>Hostel</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngIf="filtered.length === 0">
-                  <td colspan="7" class="empty-td">No users found.</td>
+                  <td colspan="8" class="empty-td">No users found.</td>
                 </tr>
                 <tr *ngFor="let u of filtered">
                   <td class="mono">{{ u.userId }}</td>
                   <td>{{ u.name }}</td>
                   <td><span [class]="'role-badge role-' + u.role">{{ u.role | titlecase }}</span></td>
                   <td>{{ u.email || '—' }}</td>
-                  <td>{{ u.department || u.roomNumber || '—' }}</td>
+                  <td>{{ u.department || '—' }}</td>
+                  <td>{{ u.roomNumber || '—' }}</td>
                   <td>{{ u.hostelName || '—' }}</td>
                   <td>
                     <button class="btn-icon edit" (click)="openEdit(u)">✏️</button>
@@ -69,11 +71,11 @@ import { AuthService } from '../../../services/auth.service';
             </table>
           </div>
 
-          <!-- Add/Edit Modal -->
+          <!-- Add/Edit user -->
           <div class="modal-overlay" *ngIf="showModal">
             <div class="modal">
               <div class="modal-header">
-                <h3>{{ editMode ? 'Edit User' : 'Add New User' }}</h3>
+                <h3>{{ editMode ? 'Edit User' : 'Register New User' }}</h3>
                 <button class="btn-close" (click)="showModal = false">×</button>
               </div>
               
@@ -143,6 +145,7 @@ import { AuthService } from '../../../services/auth.service';
                         <option value="AB-">AB-</option>
                         <option value="O+">O+</option>
                         <option value="O-">O-</option>
+                        <option value="Other">Other</option>
                       </select>
                     </div>
                     <div class="form-group">
@@ -156,7 +159,7 @@ import { AuthService } from '../../../services/auth.service';
                       <input class="form-control" formControlName="hostelName" placeholder="e.g., MH-1, LH-2" />
                     </div>
                     <div class="form-group" *ngIf="userForm.get('role')?.value === 'faculty'">
-                      <label>Room Number (Faculty)</label>
+                      <label>Room Number </label>
                       <input class="form-control" formControlName="roomNumber" placeholder="e.g., F-201" />
                     </div>
                   </div>

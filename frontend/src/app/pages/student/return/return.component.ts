@@ -25,9 +25,9 @@ import { AuthService } from '../../../services/auth.service';
           <div class="content-grid">
             <!-- GPS Card -->
             <div class="card gps-card" [class.located]="located">
-              <div class="gps-icon">{{ located ? '✅' : '📍' }}</div>
+              <div class="gps-icon">{{ located ? '✅' : ' ' }}</div>
               <h3>GPS Verification</h3>
-              <p>You must be within the specified hostel radius to mark your return successfully.</p>
+              <p>You must be within the specified hostel radius to mark your return.</p>
 
               <div class="location-status" *ngIf="located">
                 <span>Latitude: <strong>{{ lat?.toFixed(6) }}</strong></span>
@@ -35,7 +35,7 @@ import { AuthService } from '../../../services/auth.service';
               </div>
 
               <button class="btn-gps" (click)="getLocation()" [disabled]="locating">
-                {{ locating ? '⏳ Detecting Location...' : located ? '📡 Refresh Location' : '📡 Get My Location' }}
+                {{ locating ? ' Detecting Location...' : located ? ' Refresh Location' : ' Get My Location' }}
               </button>
             </div>
 
@@ -78,7 +78,7 @@ import { AuthService } from '../../../services/auth.service';
               <div *ngIf="msg" [class]="msgType === 'success' ? 'msg-success' : 'msg-error'">{{ msg }}</div>
 
               <button class="btn-primary" (click)="markReturn()" [disabled]="!located || !selectedId || loading">
-                {{ loading ? 'Updating...' : '✅ Confirm Return' }}
+                {{ loading ? 'Updating...' : ' Confirm Return' }}
               </button>
             </div>
           </div>

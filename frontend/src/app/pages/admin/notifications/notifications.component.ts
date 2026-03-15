@@ -18,44 +18,43 @@ import { AuthService } from '../../../services/auth.service';
         <main class="page-content">
 
           <div class="page-header">
-            <h1>📢 Publish Notifications</h1>
-            <p>Send announcements to specific roles or broadcast to all users.</p>
+            <h1> Publish Notifications </h1>
+            <p>Send announcements </p>
           </div>
 
           <!-- Compose Notification -->
           <div class="card compose-card">
             <div class="compose-header">
-              <h3>✉️ Compose Notification</h3>
+              <h3>✉️ Compose Notification </h3>
             </div>
             <div class="form-container">
               <div class="form-row">
                 <div class="form-group">
-                  <label>Target Audience</label>
+                  <label>Target User </label>
                   <select class="form-control" [(ngModel)]="targetRole">
-                    <option value="all">📣 All Users</option>
-                    <option value="student">🎓 Students Only</option>
-                    <option value="faculty">👨‍🏫 Faculty Only</option>
-                    <option value="authority">🏛️ Authority Only</option>
-                    <option value="admin">🛡️ Admins Only</option>
+                    <option value="all"> All Users</option>
+                    <option value="student"> Students Users </option>
+                    <option value="faculty"> Faculty Users</option>
+                    <option value="authority"> Authority Users</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label>Notification Type</label>
                   <select class="form-control" [(ngModel)]="type">
-                    <option value="general">📋 General</option>
-                    <option value="alert">🚨 Alert</option>
-                    <option value="attendance">📅 Attendance</option>
-                    <option value="request">📝 Request</option>
+                    <option value="general"> General</option>
+                    <option value="alert"> Alert</option>
+                    <option value="attendance"> Important !! </option>
+                    <option value="request"> Request</option>
                   </select>
                 </div>
               </div>
               <div class="form-group">
                 <label>Title *</label>
-                <input class="form-control" [(ngModel)]="title" placeholder="Enter notification title..." />
+                <input class="form-control" [(ngModel)]="title" placeholder="Notification title :" />
               </div>
               <div class="form-group">
                 <label>Message *</label>
-                <textarea class="form-control msg-area" [(ngModel)]="message" rows="4" placeholder="Type your notification message here..."></textarea>
+                <textarea class="form-control msg-area" [(ngModel)]="message" rows="4" placeholder="Type  message here..."></textarea>
               </div>
 
               <div *ngIf="publishMsg" [class]="publishMsgType === 'success' ? 'msg-success' : 'msg-error'">
@@ -63,7 +62,7 @@ import { AuthService } from '../../../services/auth.service';
               </div>
 
               <button class="btn-publish" (click)="publishNotification()" [disabled]="!title || !message || publishing">
-                {{ publishing ? 'Publishing...' : '🚀 Publish Notification' }}
+                {{ publishing ? 'Publishing...' : ' Publish Notification' }}
               </button>
             </div>
           </div>
@@ -71,7 +70,7 @@ import { AuthService } from '../../../services/auth.service';
           <!-- Published Notifications History -->
           <div class="card history-card">
             <div class="card-header">
-              <h3>📜 Published History</h3>
+              <h3> Published History</h3>
               <span class="count-badge">{{ notifications.length }} Total</span>
             </div>
 
@@ -208,7 +207,7 @@ export class NotificationsComponent implements OnInit {
     }
 
     getTargetLabel(role: string): string {
-        const map: any = { all: '📣 All Users', student: '🎓 Students', faculty: '👨‍🏫 Faculty', authority: '🏛️ Authority', admin: '🛡️ Admins' };
+        const map: any = { all: ' All Users', student: ' Students', faculty: ' Faculty', authority: ' Authority' };
         return map[role] || role;
     }
 }

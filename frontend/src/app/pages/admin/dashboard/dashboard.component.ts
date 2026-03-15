@@ -6,97 +6,121 @@ import { TopbarComponent } from '../../../components/topbar/topbar.component';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
-    selector: 'app-admin-dashboard',
-    standalone: true,
-    imports: [CommonModule, SidebarComponent, TopbarComponent],
-    template: `
-    <div class="dashboard-layout">
+  selector: 'app-admin-dashboard',
+  standalone: true,
+  imports: [CommonModule, SidebarComponent, TopbarComponent],
+  template: `
+    <div class="dashboard-layout animate-fade-in">
       <app-sidebar [role]="'admin'"></app-sidebar>
       <div class="main-content">
-        <app-topbar [pageTitle]="'Admin Dashboard'"></app-topbar>
+        <app-topbar [pageTitle]="'System Dashboard'"></app-topbar>
         <main class="page-content">
           <div class="dashboard-header">
-            <h1>System Overview</h1>
-            <p>Real-time statistics and summary of hostel activities.</p>
+            <h1> Welcome Back </h1>
+            <p>Monitor your hostel's activity at a glance.</p>
           </div>
 
           <div class="stats-grid">
-            <!-- Weekly Outgoing Summary -->
-            <div class="card summary-card primary">
-              <div class="card-header">
-                <h3>Weekly Outgoing Summary</h3>
-                <span class="badge">Last 7 Days</span>
+            <!-- Today's Activity Card -->
+            <div class="dashboard-card primary-gradient">
+              <div class="card-header-row">
+                <h3><i class="bi bi-activity"></i> Today's Summary</h3>
+                <span class="live-indicator">
+                  <span class="ring"></span>
+                  Live
+                </span>
               </div>
-              <div class="stats-row">
-                <div class="stat-item">
-                  <span class="label">Total Requests</span>
-                  <span class="value">{{ stats?.weekly?.totalOutgoing || 0 }}</span>
+              <div class="stats-box">
+                <div class="stat-node">
+                  <div class="n-label">Outgoings</div>
+                  <div class="n-value">{{ stats?.today?.todayOutgoings || 0 }}</div>
                 </div>
-                <div class="stat-item">
-                  <span class="label">Approved</span>
-                  <span class="value">{{ stats?.weekly?.approvedOutgoing || 0 }}</span>
+                <div class="stat-node">
+                  <div class="n-label">Home Goings</div>
+                  <div class="n-value">{{ stats?.today?.todayHomeGoings || 0 }}</div>
                 </div>
-                <div class="stat-item">
-                  <span class="label">Returned</span>
-                  <span class="value">{{ stats?.weekly?.returnedStudents || 0 }}</span>
+                <div class="stat-node">
+                  <div class="n-label">Mess Cuts</div>
+                  <div class="n-value">{{ stats?.today?.activeMessCuts || 0 }}</div>
                 </div>
               </div>
             </div>
 
-            <!-- Request Distribution Status -->
-            <div class="card summary-card accent">
-              <div class="card-header">
-                <h3>Request Distribution</h3>
-                <span class="badge">All Time</span>
+            <!-- Action Required Card -->
+            <div class="dashboard-card accent-gradient">
+              <div class="card-header-row">
+                <h3><i class="bi bi-clock-history"></i> Pending Tasks</h3>
+                <span class="action-badge">ACTION NEEDED</span>
               </div>
-              <div class="stats-row">
-                <div class="stat-item">
-                  <span class="label">Outgoing</span>
-                  <span class="value">{{ stats?.distribution?.outgoingCount || 0 }}</span>
+              <div class="stats-box">
+                <div class="stat-node">
+                  <div class="n-label">Mess Requests</div>
+                  <div class="n-value">{{ stats?.pending?.pendingMessCuts || 0 }}</div>
                 </div>
-                <div class="stat-item">
-                  <span class="label">Home-going</span>
-                  <span class="value">{{ stats?.distribution?.homegoingCount || 0 }}</span>
+                <div class="stat-node">
+                  <div class="n-label">Home Leaves</div>
+                  <div class="n-value">{{ stats?.pending?.pendingHomeGoings || 0 }}</div>
                 </div>
-                <div class="stat-item highlight">
-                  <span class="label">Pending</span>
-                  <span class="value">{{ stats?.distribution?.pendingApprovals || 0 }}</span>
+                <div class="stat-node highlight">
+                  <div class="n-label">Total Waiting</div>
+                  <div class="n-value">{{ stats?.pending?.totalPending || 0 }}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Return Tracking Preview -->
-          <div class="card mt-24">
-            <div class="card-header border-b">
-              <h3>Live Return Tracking</h3>
-              <button class="btn-text">View All</button>
+          <!-- Tracking Table -->
+          <div class="dashboard-card mt-30">
+            <div class="table-header">
+              <div class="th-left">
+                <h3>Live Attendance Tracking</h3>
+                <p>Real-time location and return status monitoring.</p>
+              </div>
+              <button class="secondary-btn">View All History</button>
             </div>
+            
             <div class="table-responsive">
-              <table class="table">
+              <table class="modern-table">
                 <thead>
                   <tr>
-                    <th>Student Name</th>
+                    <th>Student Details</th>
                     <th>Room</th>
-                    <th>Request Type</th>
+                    <th>Log Type</th>
                     <th>Status</th>
-                    <th>Time</th>
+                    <th>Recorded Time</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let item of returnTracking">
-                    <td>{{ item.student?.name || 'Unknown' }}</td>
-                    <td>{{ item.student?.roomNumber || '—' }}</td>
-                    <td>Outgoing</td>
                     <td>
-                      <span [class]="'badge ' + (item.returnStatus === 'returned' ? 'success' : 'warning')">
+                      <div class="student-info">
+                        <div class="s-avatar">{{ item.student?.name?.substring(0,1) }}</div>
+                        <div class="s-details">
+                          <span class="s-name">{{ item.student?.name || 'Unknown User' }}</span>
+                          <span class="s-id">{{ item.student?.userId || 'N/A' }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="room-pill">{{ item.student?.roomNumber || '—' }}</span></td>
+                    <td><span class="log-type">Outgoing</span></td>
+                    <td>
+                      <span class="status-badge" [class.success]="item.returnStatus === 'returned'" [class.warning]="item.returnStatus !== 'returned'">
+                        <i class="bi" [class.bi-check-circle-fill]="item.returnStatus === 'returned'" [class.bi-geo-alt-fill]="item.returnStatus !== 'returned'"></i>
                         {{ item.returnStatus === 'returned' ? 'Returned' : 'Away' }}
                       </span>
                     </td>
-                    <td>{{ item.returnTime ? (item.returnTime | date:'shortTime') : (item.timeLeaving) }}</td>
+                    <td>
+                      <div class="time-col">
+                        <i class="bi bi-clock"></i>
+                        {{ item.returnTime ? (item.returnTime | date:'shortTime') : (item.timeLeaving) }}
+                      </div>
+                    </td>
                   </tr>
                   <tr *ngIf="returnTracking.length === 0">
-                    <td colspan="5" class="empty-td">No active tracking data.</td>
+                    <td colspan="5" class="empty-state">
+                      <i class="bi bi-inbox"></i>
+                      <p>No active movements found in the last 24 hours.</p>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -106,70 +130,197 @@ import { AuthService } from '../../../services/auth.service';
       </div>
     </div>
   `,
-    styles: [`
-    .dashboard-header { margin-bottom: 32px; }
-    .dashboard-header h1 { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
-    .dashboard-header p { color: var(--muted); font-size: 15px; }
+  styles: [`
+    .dashboard-header { margin-bottom: 40px; }
+    .dashboard-header h1 { font-size: 28px; margin-bottom: 6px; }
+    .dashboard-header p { color: var(--text-light); font-size: 15px; }
 
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; }
-    .summary-card { padding: 24px; position: relative; overflow: hidden; }
-    .summary-card.primary { background: linear-gradient(135deg, #1e40af, #3b82f6); color: #fff; }
-    .summary-card.accent { background: linear-gradient(135deg, #7c3aed, #c026d3); color: #fff; }
+    .stats-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); 
+      gap: 24px; 
+    }
+
+    .primary-gradient { 
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+      color: #fff; 
+      border: none;
+    }
     
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .card-header h3 { font-size: 16px; font-weight: 700; }
-    .badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-    .badge.success { background: #dcfce7; color: #166534; }
-    .badge.warning { background: #fef9c3; color: #854d0e; }
+    .accent-gradient { 
+      background: linear-gradient(135deg, #10b981, #059669); 
+      color: #fff;
+      border: none;
+    }
 
-    .stats-row { display: flex; justify-content: space-between; gap: 16px; }
-    .stat-item { display: flex; flex-direction: column; }
-    .stat-item .label { font-size: 12px; opacity: 0.8; margin-bottom: 4px; }
-    .stat-item .value { font-size: 24px; font-weight: 800; }
-    .stat-item.highlight .value { color: #fef08a; }
+    .card-header-row { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 32px; 
+    }
+    
+    .card-header-row h3 { 
+      font-size: 16px; 
+      font-weight: 700; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px;
+      opacity: 0.9;
+    }
 
-    .mt-24 { margin-top: 24px; }
-    .border-b { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 0; }
-    .table-responsive { width: 100%; overflow-x: auto; }
-    .table { width: 100%; border-collapse: collapse; }
-    .table th { padding: 12px 20px; text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-    .table td { padding: 16px 20px; border-top: 1px solid var(--border); font-size: 14px; color: var(--text); }
-    .btn-text { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; font-size: 13px; }
-    .empty-td { text-align: center; color: var(--muted); padding: 40px !important; }
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .ring {
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      box-shadow: 0 0 0 rgba(74, 222, 128, 0.4);
+      animation: pulse 2s infinite;
+    }
+
+    .action-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+    }
+
+    .stats-box { 
+      display: flex; 
+      justify-content: space-between; 
+      gap: 20px; 
+    }
+    
+    .stat-node { display: flex; flex-direction: column; }
+    .stat-node .n-label { font-size: 12px; opacity: 0.8; margin-bottom: 8px; font-weight: 500; }
+    .stat-node .n-value { font-size: 32px; font-weight: 800; font-family: 'Poppins', sans-serif; }
+    .stat-node.highlight .n-value { color: #fef08a; }
+
+    .mt-30 { margin-top: 30px; }
+    
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .th-left h3 { font-size: 18px; margin-bottom: 4px; }
+    .th-left p { font-size: 13px; color: var(--text-light); }
+
+    .modern-table { width: 100%; border-collapse: collapse; }
+    .modern-table th { 
+      text-align: left; 
+      padding: 12px 16px; 
+      font-size: 12px; 
+      color: var(--text-light); 
+      text-transform: uppercase; 
+      letter-spacing: 1px; 
+      font-weight: 700;
+    }
+    
+    .modern-table td { padding: 16px; border-bottom: 1px solid #f8f9fa; }
+
+    .student-info { display: flex; align-items: center; gap: 12px; }
+    .s-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .s-details { display: flex; flex-direction: column; }
+    .s-name { font-weight: 600; font-size: 14px; color: var(--text-dark); }
+    .s-id { font-size: 11px; color: var(--text-light); }
+
+    .room-pill { 
+      background: #f3f4f6; 
+      padding: 4px 10px; 
+      border-radius: 6px; 
+      font-size: 12px; 
+      font-weight: 700; 
+      color: var(--text-dark);
+    }
+    
+    .log-type { font-size: 13px; color: var(--text-light); font-weight: 500; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .status-badge.success { background: var(--success-bg); color: var(--success); }
+    .status-badge.warning { background: var(--warning-bg); color: #854d0e; }
+
+    .time-col { font-size: 13px; color: var(--text-light); display: flex; align-items: center; gap: 6px; }
+
+    .empty-state { text-align: center; padding: 60px !important; color: var(--text-light); }
+    .empty-state i { font-size: 40px; opacity: 0.2; margin-bottom: 12px; display: block; }
   `]
 })
 export class AdminDashboardComponent implements OnInit {
-    stats: any;
-    returnTracking: any[] = [];
-    isLoading = true;
+  stats: any;
+  returnTracking: any[] = [];
+  isLoading = true;
 
-    constructor(private http: HttpClient, private auth: AuthService) { }
+  constructor(private http: HttpClient, private auth: AuthService) { }
 
-    ngOnInit() {
-        this.loadStats();
-        this.loadReturnTracking();
-    }
+  ngOnInit() {
+    this.loadStats();
+    this.loadReturnTracking();
+  }
 
-    get headers() {
-        return { headers: new HttpHeaders({ Authorization: `Bearer ${this.auth.userValue?.token}` }) };
-    }
+  get headers() {
+    return { headers: new HttpHeaders({ Authorization: `Bearer ${this.auth.userValue?.token}` }) };
+  }
 
-    loadStats() {
-        this.http.get<any>('http://localhost:5000/api/admin/dashboard-stats', this.headers).subscribe({
-            next: (res) => {
-                this.stats = res.stats;
-                this.isLoading = false;
-            },
-            error: () => this.isLoading = false
-        });
-    }
+  loadStats() {
+    this.http.get<any>('http://localhost:5000/api/admin/dashboard-stats', this.headers).subscribe({
+      next: (res) => {
+        this.stats = res.stats;
+        this.isLoading = false;
+      },
+      error: () => this.isLoading = false
+    });
+  }
 
-    loadReturnTracking() {
-        this.http.get<any>('http://localhost:5000/api/admin/return-tracking', this.headers).subscribe({
-            next: (res) => {
-                this.returnTracking = (res.outgoings || []).slice(0, 5);
-            },
-            error: () => { }
-        });
-    }
+  loadReturnTracking() {
+    this.http.get<any>('http://localhost:5000/api/admin/return-tracking', this.headers).subscribe({
+      next: (res) => {
+        this.returnTracking = (res.outgoings || []).slice(0, 5);
+      },
+      error: () => { }
+    });
+  }
 }

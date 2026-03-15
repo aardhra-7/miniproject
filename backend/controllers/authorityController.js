@@ -5,7 +5,7 @@ const HomeGoing = require('../models/HomeGoing');
 const Outgoing = require('../models/Outgoing');
 const Notification = require('../models/Notification');
 
-// Get pending requests (Only Home-going and Mess Cut)
+// Get pending requests 
 exports.getPendingRequests = async (req, res) => {
   try {
     const homeGoings = await HomeGoing.find({ status: 'pending', recordingType: 'request' })
@@ -69,7 +69,7 @@ exports.updateMessCut = async (req, res) => {
   }
 };
 
-// Mark attendance (Supports Bulk)
+// Mark attendance 
 exports.markAttendance = async (req, res) => {
   try {
     const { attendance, date } = req.body; // Expects array of { student, status, remarks }
@@ -112,7 +112,7 @@ exports.markAttendance = async (req, res) => {
   }
 };
 
-// Get students sorted by room
+// Get students room - wise
 exports.getStudents = async (req, res) => {
   try {
     const students = await User.find({ role: 'student' })

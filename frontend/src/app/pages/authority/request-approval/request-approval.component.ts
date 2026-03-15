@@ -63,8 +63,8 @@ import { AuthService } from '../../../services/auth.service';
                          <span class="name">{{ r.student?.name }}</span>
                          <span class="meta">Room {{ r.student?.roomNumber }}</span>
                       </div>
-                      <div class="dest">📍 Leaving for: <strong>{{ r.place }}</strong></div>
-                      <div class="date">Planned Date: {{ r.leaveDate | date:'fullDate' }}</div>
+                      <div class="dest"> Leaving for: <strong>{{ r.place }}</strong></div>
+                      <div class="date"> Date: {{ r.leaveDate | date:'fullDate' }}</div>
                    </div>
                    <div class="req-actions">
                       <input class="form-control" [(ngModel)]="r._remarks" placeholder="Add remarks..." />

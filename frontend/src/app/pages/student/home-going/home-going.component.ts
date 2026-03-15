@@ -23,8 +23,8 @@ import { AuthService } from '../../../services/auth.service';
           </div>
 
           <div class="tab-nav">
-             <button [class.active]="activeTab === 'request'" (click)="activeTab = 'request'">📅 Home-going Request</button>
-             <button [class.active]="activeTab === 'mark'" (click)="activeTab = 'mark'">🚀 Mark Home-going</button>
+             <button [class.active]="activeTab === 'request'" (click)="activeTab = 'request'"> Home-going Request</button>
+             <button [class.active]="activeTab === 'mark'" (click)="activeTab = 'mark'"> Mark Home-going</button>
           </div>
 
           <div class="content-grid">
@@ -47,6 +47,10 @@ import { AuthService } from '../../../services/auth.service';
                         <label>Place / Hometown *</label>
                         <input class="form-control" [(ngModel)]="place" placeholder="e.g. Kochi" />
                       </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Reason *</label>
+                      <textarea class="form-control" [(ngModel)]="reason" rows="2" placeholder="Going for family event..."></textarea>
                     </div>
                     <button class="btn-primary" (click)="submitRequest()" [disabled]="!leaveDate || !place || loading">
                       {{ loading ? 'Submitting...' : 'Send Request →' }}
@@ -73,7 +77,7 @@ import { AuthService } from '../../../services/auth.service';
                       </div>
                     </div>
                     <button class="btn-primary btn-record" (click)="submitMarking()" [disabled]="!markDate || !markPlace || loading">
-                      {{ loading ? 'Recording...' : '🚀 Mark Home-going Now' }}
+                      {{ loading ? 'Recording...' : ' Mark Home-going Now' }}
                     </button>
                   </div>
                </div>
@@ -92,6 +96,7 @@ import { AuthService } from '../../../services/auth.service';
                   <div class="item-main">
                     <div class="item-title">{{ r.place }}</div>
                     <div class="item-meta">{{ r.leaveDate | date:'dd MMM yyyy' }} at {{ r.time }}</div>
+                    <div class="item-reason" *ngIf="r.reason">{{ r.reason }}</div>
                     <div class="item-meta type-badge">{{ r.recordingType === 'request' ? 'Request' : 'Direct Marking' }}</div>
                   </div>
                   <span [class]="'badge badge-' + r.status">{{ r.status | titlecase }}</span>
@@ -141,6 +146,7 @@ import { AuthService } from '../../../services/auth.service';
     .item-active { border-color: var(--primary); background: rgba(14, 165, 233, .04); }
     .item-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
     .item-meta { font-size: 12px; color: var(--muted); }
+    .item-reason { font-size: 12px; color: var(--text); background: rgba(0,0,0,.03); padding: 4px 8px; border-radius: 6px; margin: 4px 0; }
     .type-badge { font-weight: 700; color: var(--primary); font-size: 10px; text-transform: uppercase; margin-top: 4px; }
     .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
     .badge-approved { background: rgba(16, 185, 129, .12); color: #059669; }
@@ -157,6 +163,7 @@ export class HomeGoingComponent implements OnInit {
   leaveDate = '';
   time = '';
   place = '';
+  reason = '';
 
   // Mark Form
   markDate = new Date().toISOString().split('T')[0];
@@ -193,7 +200,8 @@ export class HomeGoingComponent implements OnInit {
     this.http.post('http://localhost:5000/api/student/home-going/request', {
       leaveDate: this.leaveDate,
       time: this.time,
-      place: this.place
+      place: this.place,
+      reason: this.reason
     }, this.headers).subscribe({
       next: (res: any) => {
         this.msg = res.message || 'Request submitted!';
@@ -239,6 +247,7 @@ export class HomeGoingComponent implements OnInit {
     this.leaveDate = '';
     this.time = '';
     this.place = '';
+    this.reason = '';
     this.markPlace = '';
   }
 }

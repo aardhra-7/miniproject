@@ -38,14 +38,14 @@ import { AuthService } from '../../../services/auth.service';
                   </div>
                   <div class="form-group">
                     <label>Destination / Place</label>
-                    <input class="form-control" [(ngModel)]="place" placeholder="e.g. Town, Gym" />
+                    <input class="form-control" [(ngModel)]="place" placeholder=" " />
                   </div>
                 </div>
 
                 <div *ngIf="msg" [class]="msgType === 'success' ? 'msg-success' : 'msg-error'">{{ msg }}</div>
 
                 <button class="btn-primary" (click)="submitMarking()" [disabled]="!date || !timeLeaving || !place || loading">
-                  {{ loading ? 'Recording...' : '🚀 Mark Outgoing' }}
+                  {{ loading ? 'Recording...' : ' Mark Outgoing' }}
                 </button>
               </div>
             </div>

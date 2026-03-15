@@ -59,9 +59,6 @@ import { RouterLink } from '@angular/router';
                 </div>
                 <div class="header-actions">
                    <input type="text" [(ngModel)]="attendanceSearch" (input)="filterAttendanceStudents()" placeholder="Search Student..." class="search-input" />
-                   <button class="btn-primary" (click)="submitAttendance()" [disabled]="marking || selectedStudents.size === 0">
-                     {{ marking ? 'Submitting...' : 'Mark Selected →' }}
-                   </button>
                 </div>
               </div>
               
@@ -69,15 +66,14 @@ import { RouterLink } from '@angular/router';
                 <table class="table">
                   <thead>
                     <tr>
-                      <th style="width: 40px"><input type="checkbox" (change)="toggleAll($event)" /></th>
                       <th>Room</th>
                       <th>Student Name</th>
                       <th>ID</th>
+                      <th style="text-align: right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let s of filteredAttendanceStudents" [class.selected]="selectedStudents.has(s._id)">
-                      <td><input type="checkbox" [checked]="selectedStudents.has(s._id)" (change)="toggleStudent(s._id)" /></td>
+                    <tr *ngFor="let s of filteredAttendanceStudents">
                       <td class="room-cell">{{ s.roomNumber }}</td>
                       <td>
                         <div class="student-cell">
@@ -86,6 +82,12 @@ import { RouterLink } from '@angular/router';
                         </div>
                       </td>
                       <td class="id-cell">{{ s.userId }}</td>
+                      <td style="text-align: right">
+                        <div class="action-btns">
+                          <button class="btn-sm btn-success" (click)="markIndividual(s._id, 'present')">P</button>
+                          <button class="btn-sm btn-danger" (click)="markIndividual(s._id, 'absent')">A</button>
+                        </div>
+                      </td>
                     </tr>
                     <tr *ngIf="filteredAttendanceStudents.length === 0">
                       <td colspan="4" class="empty-state">No matching students found.</td>
@@ -140,6 +142,12 @@ import { RouterLink } from '@angular/router';
     .btn-primary:hover { background: #1a56db; }
     .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
     
+    .action-btns { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-sm { padding: 6px 12px; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; color: #fff; transition: opacity .2s; }
+    .btn-sm:active { opacity: .8; }
+    .btn-success { background: #10b981; }
+    .btn-danger { background: #ef4444; }
+
     .empty-state { text-align: center; color: var(--muted); padding: 40px !important; }
   `]
 })
@@ -191,33 +199,14 @@ export class AuthorityDashboardComponent implements OnInit {
     );
   }
 
-  toggleStudent(id: string) {
-    if (this.selectedStudents.has(id)) this.selectedStudents.delete(id);
-    else this.selectedStudents.add(id);
-  }
-
-  toggleAll(event: any) {
-    if (event.target.checked) {
-      this.filteredAttendanceStudents.forEach(s => this.selectedStudents.add(s._id));
-    } else {
-      this.selectedStudents.clear();
-    }
-  }
-
-  submitAttendance() {
-    this.marking = true;
-    const items = Array.from(this.selectedStudents).map(id => ({
-      student: id,
-      status: 'present'
-    }));
-
-    this.http.post('http://localhost:5000/api/authority/attendance', { attendance: items }, this.headers).subscribe({
+  markIndividual(studentId: string, status: string) {
+    this.http.post('http://localhost:5000/api/authority/attendance', {
+      attendance: [{ student: studentId, status }]
+    }, this.headers).subscribe({
       next: () => {
-        this.marking = false;
-        this.selectedStudents.clear();
-        alert('Attendance marked successfully!');
+        // Quietly marked
       },
-      error: () => this.marking = false
+      error: () => alert('Failed to mark attendance')
     });
   }
 }

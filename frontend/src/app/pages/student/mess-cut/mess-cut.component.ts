@@ -7,10 +7,10 @@ import { TopbarComponent } from '../../../components/topbar/topbar.component';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
-    selector: 'app-mess-cut',
-    standalone: true,
-    imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
-    template: `
+  selector: 'app-mess-cut',
+  standalone: true,
+  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
+  template: `
     <div class="dashboard-layout">
       <app-sidebar [role]="'student'"></app-sidebar>
       <div class="main-content">
@@ -37,10 +37,6 @@ import { AuthService } from '../../../services/auth.service';
                     <input type="date" class="form-control" [(ngModel)]="endDate" [min]="startDate || minDate" />
                   </div>
                 </div>
-                <div class="form-group">
-                  <label>Reason (Optional)</label>
-                  <textarea class="form-control" [(ngModel)]="reason" rows="3" placeholder="Family event, holiday etc."></textarea>
-                </div>
 
                 <div *ngIf="msg" [class]="msgType === 'success' ? 'msg-success' : 'msg-error'">
                   {{ msg }}
@@ -51,7 +47,7 @@ import { AuthService } from '../../../services/auth.service';
                 </button>
               </div>
               <div class="policy-note">
-                <p>⚠️ <strong>Policy:</strong> Mess cut must be applied for at least the minimum allowed days (as set by hostel admin). All requests go to Authority for approval.</p>
+                <p><strong>Policy:</strong> Mess cut must be applied for at least the minimum allowed days (as set by hostel admin). All requests go to Authority for approval.</p>
               </div>
             </div>
 
@@ -64,7 +60,6 @@ import { AuthService } from '../../../services/auth.service';
                     <div class="date-range">
                       {{ r.startDate | date:'dd MMM' }} — {{ r.endDate | date:'dd MMM yyyy' }}
                     </div>
-                    <div class="reason">{{ r.reason || 'No reason specified' }}</div>
                   </div>
                   <span [class]="'badge badge-' + r.status">{{ r.status | titlecase }}</span>
                 </div>
@@ -76,7 +71,7 @@ import { AuthService } from '../../../services/auth.service';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     :host { display: contents; }
     .page-header { margin-bottom: 28px; }
     .page-header h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
@@ -106,7 +101,6 @@ import { AuthService } from '../../../services/auth.service';
     .history-list { display: flex; flex-direction: column; gap: 12px; }
     .history-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 1px solid var(--border); border-radius: 14px; }
     .date-range { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-    .reason { font-size: 12px; color: var(--muted); }
     .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
     .badge-approved { background: rgba(16, 185, 129, .12); color: #059669; }
     .badge-pending { background: rgba(245, 158, 11, .12); color: #d97706; }
@@ -115,60 +109,57 @@ import { AuthService } from '../../../services/auth.service';
   `]
 })
 export class MessCutComponent implements OnInit {
-    startDate = '';
-    endDate = '';
-    reason = '';
-    minDate = '';
-    loading = false;
-    msg = '';
-    msgType = '';
-    records: any[] = [];
+  startDate = '';
+  endDate = '';
+  minDate = '';
+  loading = false;
+  msg = '';
+  msgType = '';
+  records: any[] = [];
 
-    constructor(private http: HttpClient, private auth: AuthService) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        this.minDate = tomorrow.toISOString().split('T')[0];
-    }
+  constructor(private http: HttpClient, private auth: AuthService) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    this.minDate = tomorrow.toISOString().split('T')[0];
+  }
 
-    ngOnInit() {
+  ngOnInit() {
+    this.loadRecords();
+  }
+
+  get headers() {
+    return { headers: new HttpHeaders({ Authorization: `Bearer ${this.auth.userValue?.token}` }) };
+  }
+
+  loadRecords() {
+    this.http.get<any>('http://localhost:5000/api/student/mess-cut', this.headers).subscribe({
+      next: res => this.records = res.messCuts || [],
+      error: () => { }
+    });
+  }
+
+  submitRequest() {
+    if (!this.startDate || !this.endDate) return;
+    this.loading = true;
+    this.msg = '';
+
+    this.http.post('http://localhost:5000/api/student/mess-cut', {
+      startDate: this.startDate,
+      endDate: this.endDate
+    }, this.headers).subscribe({
+      next: (res: any) => {
+        this.msg = res.message || 'Request submitted successfully!';
+        this.msgType = 'success';
+        this.loading = false;
+        this.startDate = '';
+        this.endDate = '';
         this.loadRecords();
-    }
-
-    get headers() {
-        return { headers: new HttpHeaders({ Authorization: `Bearer ${this.auth.userValue?.token}` }) };
-    }
-
-    loadRecords() {
-        this.http.get<any>('http://localhost:5000/api/student/mess-cut', this.headers).subscribe({
-            next: res => this.records = res.messCuts || [],
-            error: () => { }
-        });
-    }
-
-    submitRequest() {
-        if (!this.startDate || !this.endDate) return;
-        this.loading = true;
-        this.msg = '';
-
-        this.http.post('http://localhost:5000/api/student/mess-cut', {
-            startDate: this.startDate,
-            endDate: this.endDate,
-            reason: this.reason
-        }, this.headers).subscribe({
-            next: (res: any) => {
-                this.msg = res.message || 'Request submitted successfully!';
-                this.msgType = 'success';
-                this.loading = false;
-                this.startDate = '';
-                this.endDate = '';
-                this.reason = '';
-                this.loadRecords();
-            },
-            error: err => {
-                this.msg = err.error?.message || 'Submission failed.';
-                this.msgType = 'error';
-                this.loading = false;
-            }
-        });
-    }
+      },
+      error: err => {
+        this.msg = err.error?.message || 'Submission failed.';
+        this.msgType = 'error';
+        this.loading = false;
+      }
+    });
+  }
 }

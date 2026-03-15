@@ -20,7 +20,7 @@ import { AuthService } from '../../../services/auth.service';
           <div class="publish-container">
             <div class="card publish-card">
               <div class="card-header">
-                 <h2>📢 Create New Announcement</h2>
+                 <h2> Create New Announcement</h2>
                  <p>Send notifications to specific roles or all hostel members.</p>
               </div>
               
@@ -57,7 +57,7 @@ import { AuthService } from '../../../services/auth.service';
               
               <div class="card-footer">
                 <button class="btn-primary" (click)="publish()" [disabled]="publishing || !notification.title || !notification.message">
-                   {{ publishing ? 'Publishing...' : '🚀 Publish Announcement' }}
+                   {{ publishing ? 'Publishing...' : ' Publish Announcement' }}
                 </button>
               </div>
             </div>

@@ -29,7 +29,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// --- Attendance Section ---
+// Attendance Section 
 
 exports.markSelfAttendance = async (req, res) => {
   try {
@@ -75,20 +75,20 @@ exports.getSelfAttendanceHistory = async (req, res) => {
   }
 };
 
-// --- Mess Cut Section ---
+// Mess Cut Section
 
 exports.requestMessCut = async (req, res) => {
   try {
     const { startDate, endDate, reason } = req.body;
     const messCut = new MessCut({
-      student: req.user._id, // Using 'student' field as 'user' ref
+      student: req.user._id,
       startDate,
       endDate,
       reason,
-      status: 'pending' // Authority must approve
+      status: 'pending'
     });
     await messCut.save();
-    res.json({ success: true, message: 'Mess cut request submitted to authority', messCut });
+    res.json({ success: true, message: 'Mess cut request submitted !! ', messCut });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

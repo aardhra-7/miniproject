@@ -6,7 +6,7 @@ const MessCut = require('../models/MessCut');
 const Notification = require('../models/Notification');
 const HostelSettings = require('../models/HostelSettings');
 
-// Calculate distance between two GPS coordinates 
+// Calculate distance between  GPS coordinates 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371000;
   const φ1 = lat1 * Math.PI / 180;
@@ -48,7 +48,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Mark outgoing (Direct marking, no approval)
+// Mark outgoing 
 exports.markOutgoing = async (req, res) => {
   try {
     const { date, timeLeaving, place } = req.body;
@@ -70,7 +70,7 @@ exports.markOutgoing = async (req, res) => {
   }
 };
 
-// Request home going (Approval needed)
+// Request home going 
 exports.requestHomeGoing = async (req, res) => {
   try {
     const { leaveDate, time, place } = req.body;
@@ -93,7 +93,7 @@ exports.requestHomeGoing = async (req, res) => {
   }
 };
 
-// Mark home going (Direct recording, no approval)
+// Mark home going 
 exports.markHomeGoing = async (req, res) => {
   try {
     const { leaveDate, time, place } = req.body;
@@ -106,7 +106,7 @@ exports.markHomeGoing = async (req, res) => {
       time,
       place,
       recordingType: 'recording',
-      status: 'active' // Direct active status
+      status: 'active'
     });
 
     await homeGoing.save();
@@ -121,10 +121,10 @@ exports.markReturn = async (req, res) => {
   try {
     const { type, requestId, latitude, longitude, returnDate, returnTime } = req.body;
 
-    // Get hostel settings for the student's hostel
+    // Get hostel settings 
     const settings = await HostelSettings.findOne({ hostelName: req.user.hostelName });
 
-    // Fallback defaults if settings not found
+    // Fallback 
     const HOSTEL_LAT = settings?.locationCoordinates?.lat || parseFloat(process.env.HOSTEL_LAT || '9.4265');
     const HOSTEL_LON = settings?.locationCoordinates?.lng || parseFloat(process.env.HOSTEL_LON || '76.9246');
     const ALLOWED_RADIUS = settings?.returnRadius || 200;
@@ -246,7 +246,7 @@ exports.getAttendance = async (req, res) => {
 
 exports.getNotifications = async (req, res) => {
   try {
-    // Return notifications targeted to this specific user OR targeted to all/student role
+    // Return notifications
     const notifications = await Notification.find({
       $or: [
         { user: req.user._id },

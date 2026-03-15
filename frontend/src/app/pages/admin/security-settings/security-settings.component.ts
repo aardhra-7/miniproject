@@ -19,9 +19,9 @@ import { AuthService } from '../../../services/auth.service';
 
           <!-- Admin Credentials Card -->
           <div class="card security-card">
-            <div class="card-icon">🔐</div>
+            <div class="card-icon"> </div>
             <h3>Administrator Credentials</h3>
-            <p class="subtitle">Update the primary admin email and sync with the system .env configuration.</p>
+            <p class="subtitle">Update the admin email and sync with the system .env configuration.</p>
             
             <div class="form-container">
               <div class="form-group">
@@ -30,7 +30,7 @@ import { AuthService } from '../../../services/auth.service';
               </div>
               
               <div class="form-group">
-                <label>New System Password</label>
+                <label> New System Password</label>
                 <input type="password" class="form-control" [(ngModel)]="password" placeholder="••••••••" />
               </div>
             </div>
@@ -38,9 +38,9 @@ import { AuthService } from '../../../services/auth.service';
 
           <!-- Hostel Location Settings -->
           <div class="card security-card">
-            <div class="card-icon">📍</div>
+            <div class="card-icon"> </div>
             <h3>Hostel Location Settings</h3>
-            <p class="subtitle">Configure the GPS coordinates and radius for student return marking verification.</p>
+            <p class="subtitle">Configure the GPS coordinates and radius for verification.</p>
             
             <div class="form-container">
               <div class="form-row">
@@ -54,7 +54,7 @@ import { AuthService } from '../../../services/auth.service';
                 </div>
               </div>
               <div class="form-group">
-                <label>Return Approval Radius (meters)</label>
+                <label>Return  Radius (meters)</label>
                 <input type="number" class="form-control" [(ngModel)]="returnRadius" placeholder="e.g., 100" />
                 <span class="hint">Students within this radius can mark return and get auto-approved.</span>
               </div>
@@ -63,23 +63,23 @@ import { AuthService } from '../../../services/auth.service';
 
           <!-- Mess Cut Settings -->
           <div class="card security-card">
-            <div class="card-icon">🍽️</div>
+            <div class="card-icon"></div>
             <h3>Mess Cut Configuration</h3>
-            <p class="subtitle">Set the minimum number of days for which a mess cut can be applied. Start date must always be from the next day.</p>
+            <p class="subtitle">Set the minimum number of days for a mess cut apply.</p>
             
             <div class="form-container">
               <div class="form-group">
                 <label>Minimum Mess Cut Days</label>
                 <input type="number" class="form-control" [(ngModel)]="minMessCutDays" placeholder="e.g., 3" min="1" />
-                <span class="hint">Mess cut can only be applied for at least this many days. Start date is always from the next day.</span>
+                <span class="hint">Mess cut can only be applied for at least this many days. </span>
               </div>
             </div>
           </div>
 
           <!-- Admin Transfer -->
           <div class="card security-card danger-card">
-            <div class="card-icon">⚠️</div>
-            <h3>Transfer Admin Role</h3>
+            <div class="card-icon"> </div>
+            <h3>Change Admin Role</h3>
             <p class="subtitle">Transfer the admin role for this hostel to another registered user. This action cannot be undone — you will be demoted to faculty.</p>
             
             <div class="form-container">
@@ -96,7 +96,7 @@ import { AuthService } from '../../../services/auth.service';
           <div *ngIf="msg" [class]="msgType === 'success' ? 'toast success-toast' : 'toast error-toast'">{{ msg }}</div>
 
           <button class="btn-primary save-all" (click)="saveSettings()" [disabled]="loading">
-            {{ loading ? 'Updating System...' : '💾 Save All Settings' }}
+            {{ loading ? 'Updating System...' : ' Save All Settings' }}
           </button>
 
         </main>

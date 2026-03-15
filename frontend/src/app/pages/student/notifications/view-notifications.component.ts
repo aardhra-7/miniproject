@@ -17,22 +17,22 @@ import { AuthService } from '../../../services/auth.service';
         <main class="page-content">
 
           <div class="page-header">
-            <h1>📢 Notifications & Alerts</h1>
+            <h1> Notifications & Alerts</h1>
             <p>Stay updated with latest announcements from hostel administration.</p>
           </div>
 
           <div class="notif-container card">
             <div *ngIf="notifications.length === 0" class="empty-state">
-              <span class="empty-icon">📭</span>
+              <span class="empty-icon"></span>
               <p>No notifications yet.</p>
             </div>
 
             <div *ngFor="let n of notifications" class="notif-item" [class]="'type-' + n.type">
               <div class="notif-icon">
-                <span *ngIf="n.type === 'alert'">🚨</span>
-                <span *ngIf="n.type === 'general' || !n.type">📋</span>
-                <span *ngIf="n.type === 'attendance'">📅</span>
-                <span *ngIf="n.type === 'request'">📝</span>
+                <span *ngIf="n.type === 'alert'"></span>
+                <span *ngIf="n.type === 'general' || !n.type"></span>
+                <span *ngIf="n.type === 'attendance'"></span>
+                <span *ngIf="n.type === 'request'"></span>
               </div>
               <div class="notif-content">
                 <div class="notif-header">

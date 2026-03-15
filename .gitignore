@@ -8,24 +8,10 @@ backend/node_modules/
 backend/.env
 frontend/.env
 
-# Logs
-logs
-*.log
-npm-debug.log*
-
-# OS files
-.DS_Store
-Thumbs.db
 
 # Build files
 dist/
 build/
-.angular/
+
 frontend/.angular/
 backend/.angular/
-
-# Firebase service account key
-*firebase-adminsdk*.json
-
-# Optional
-coverage/

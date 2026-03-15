@@ -4,7 +4,7 @@ const notificationSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false // Optional if targeted by role
+    required: false
   },
   targetRole: {
     type: String,
@@ -25,7 +25,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['request', 'attendance', 'general', 'alert'],
+    enum: ['request', 'important', 'general', 'alert'],
     default: 'general'
   },
   isRead: {

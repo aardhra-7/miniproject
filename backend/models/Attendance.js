@@ -23,7 +23,7 @@ const attendanceSchema = new mongoose.Schema({
     ref: 'User'
   },
   role: {
-    type: String, // 'authority' or 'faculty'
+    type: String, // 
     required: true
   }
 }, {
