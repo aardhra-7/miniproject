@@ -67,6 +67,16 @@ import { AuthService } from '../../services/auth.service';
           <a class="nav-item" routerLinkActive="active" [routerLink]="['/authority/requests']">
             <span class="nav-icon">📋</span> Request Approval
           </a>
+          <a class="nav-item" routerLinkActive="active" [routerLink]="['/authority/notifications']">
+            <span class="nav-icon">📢</span> Publish Notifications
+          </a>
+          <div class="nav-section-label">User Profiles</div>
+          <a class="nav-item" routerLinkActive="active" [routerLink]="['/authority/student-profiles']">
+            <span class="nav-icon">🎓</span> Student Profiles
+          </a>
+          <a class="nav-item" routerLinkActive="active" [routerLink]="['/authority/faculty-profiles']">
+            <span class="nav-icon">👨‍🏫</span> Faculty Profiles
+          </a>
         </ng-container>
       </div>
 

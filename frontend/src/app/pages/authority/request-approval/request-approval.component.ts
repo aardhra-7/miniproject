@@ -18,64 +18,63 @@ import { AuthService } from '../../../services/auth.service';
         <main class="page-content">
 
           <div class="page-header">
-            <h1>Pending Requests</h1>
-            <p>Review and approve or reject student requests.</p>
+            <h1>Pending Approvals</h1>
+            <p>Review and act on student requests for Home-going and Mess-cut.</p>
           </div>
 
-          <!-- Tabs -->
-          <div class="tabs">
-            <button [class.active]="activeTab === 'outgoing'" (click)="activeTab='outgoing'; load()">
-              Outgoing ({{ outgoings.length }})
-            </button>
-            <button [class.active]="activeTab === 'homegoing'" (click)="activeTab='homegoing'; load()">
-              Home Going ({{ homeGoings.length }})
-            </button>
-          </div>
-
-          <!-- Outgoing Tab -->
-          <div *ngIf="activeTab === 'outgoing'">
-            <div *ngIf="outgoings.length === 0" class="empty-state">No pending outgoing requests.</div>
-            <div *ngFor="let r of outgoings" class="request-card">
-              <div class="req-info">
-                <div class="req-name">{{ r.student?.name || r.studentName }}</div>
-                <div class="req-meta">Room {{ r.student?.roomNumber || r.roomNumber || '—' }} &nbsp;|&nbsp; {{ r.date | date:'dd MMM yyyy' }}</div>
-                <div class="req-meta">Leave: {{ r.timeLeaving }} | Expected Return: {{ r.expectedReturnTime }}</div>
-                <div class="req-reason">Reason: {{ r.reason }}</div>
-                <div class="req-place" *ngIf="r.place">📍 {{ r.place }}</div>
+          <div class="approval-grid">
+            <!-- Mess Cut Card -->
+            <div class="card approval-card">
+              <div class="card-header">
+                 <h3>🍽️ Mess Cut Requests ({{ messCuts.length }})</h3>
               </div>
-              <div class="action-group" *ngIf="r.status === 'pending'">
-                <input class="form-control" [(ngModel)]="r._remarks" placeholder="Remarks (optional)" />
-                <div class="btn-group">
-                  <button class="btn-approve" (click)="approve(r, 'outgoing')">Approve</button>
-                  <button class="btn-reject" (click)="reject(r, 'outgoing')">Reject</button>
+              <div class="request-list">
+                <div *ngIf="messCuts.length === 0" class="empty-list">No pending mess-cut requests.</div>
+                <div *ngFor="let r of messCuts" class="req-item">
+                   <div class="req-main">
+                      <div class="student-info">
+                         <span class="name">{{ r.student?.name }}</span>
+                         <span class="meta">Room {{ r.student?.roomNumber }}</span>
+                      </div>
+                      <div class="date-range">{{ r.startDate | date:'dd MMM' }} — {{ r.endDate | date:'dd MMM yyyy' }}</div>
+                      <p class="reason" *ngIf="r.reason">{{ r.reason }}</p>
+                   </div>
+                   <div class="req-actions">
+                      <input class="form-control" [(ngModel)]="r._remarks" placeholder="Add remarks..." />
+                      <div class="btn-group">
+                         <button class="btn-approve" (click)="updateMessCut(r, 'approved')">Approve</button>
+                         <button class="btn-reject" (click)="updateMessCut(r, 'rejected')">Reject</button>
+                      </div>
+                   </div>
                 </div>
               </div>
-              <span *ngIf="r.status !== 'pending'" [class]="'badge badge-' + r.status">
-                {{ r.status | titlecase }}
-              </span>
             </div>
-          </div>
 
-          <!-- Home Going Tab -->
-          <div *ngIf="activeTab === 'homegoing'">
-            <div *ngIf="homeGoings.length === 0" class="empty-state">No pending home-going requests.</div>
-            <div *ngFor="let r of homeGoings" class="request-card">
-              <div class="req-info">
-                <div class="req-name">{{ r.student?.name || r.studentName }}</div>
-                <div class="req-meta">Room {{ r.student?.roomNumber || r.roomNumber || '—' }} &nbsp;|&nbsp; {{ r.date | date:'dd MMM yyyy' }}</div>
-                <div class="req-place">📍 {{ r.place }}</div>
-                <div class="req-reason">Reason: {{ r.reason }}</div>
+            <!-- Home Going Card -->
+            <div class="card approval-card">
+              <div class="card-header">
+                 <h3>🏡 Home Going Requests ({{ homeGoings.length }})</h3>
               </div>
-              <div class="action-group" *ngIf="r.status === 'pending'">
-                <input class="form-control" [(ngModel)]="r._remarks" placeholder="Remarks (optional)" />
-                <div class="btn-group">
-                  <button class="btn-approve" (click)="approve(r, 'homegoing')">Approve</button>
-                  <button class="btn-reject" (click)="reject(r, 'homegoing')">Reject</button>
+              <div class="request-list">
+                <div *ngIf="homeGoings.length === 0" class="empty-list">No pending home-going requests.</div>
+                <div *ngFor="let r of homeGoings" class="req-item">
+                   <div class="req-main">
+                      <div class="student-info">
+                         <span class="name">{{ r.student?.name }}</span>
+                         <span class="meta">Room {{ r.student?.roomNumber }}</span>
+                      </div>
+                      <div class="dest">📍 Leaving for: <strong>{{ r.place }}</strong></div>
+                      <div class="date">Planned Date: {{ r.leaveDate | date:'fullDate' }}</div>
+                   </div>
+                   <div class="req-actions">
+                      <input class="form-control" [(ngModel)]="r._remarks" placeholder="Add remarks..." />
+                      <div class="btn-group">
+                         <button class="btn-approve" (click)="updateHomeGoing(r, 'approved')">Approve</button>
+                         <button class="btn-reject" (click)="updateHomeGoing(r, 'rejected')">Reject</button>
+                      </div>
+                   </div>
                 </div>
               </div>
-              <span *ngIf="r.status !== 'pending'" [class]="'badge badge-' + r.status">
-                {{ r.status | titlecase }}
-              </span>
             </div>
           </div>
 
@@ -85,32 +84,39 @@ import { AuthService } from '../../../services/auth.service';
   `,
   styles: [`
     :host { display: contents; }
-    .page-header { margin-bottom: 24px; }
-    .page-header h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-    .page-header p { color: var(--muted); font-size: 14px; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-    .tabs button { padding: 10px 20px; border: 2px solid var(--border); background: transparent; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--muted); transition: all .2s; }
-    .tabs button.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
-    .request-card { background: var(--card); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
-    .req-name { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
-    .req-meta { font-size: 12px; color: var(--muted); }
-    .req-reason { font-size: 13px; margin-top: 6px; }
-    .req-place { font-size: 12px; color: var(--primary); margin-top: 4px; }
-    .action-group { display: flex; flex-direction: column; gap: 8px; min-width: 200px; }
-    .form-control { width: 100%; padding: 9px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; background: var(--bg); color: var(--text); }
-    .btn-group { display: flex; gap: 8px; }
-    .btn-approve { flex: 1; background: rgba(16,185,129,.12); color: #059669; border: none; padding: 9px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-    .btn-reject { flex: 1; background: rgba(239,68,68,.12); color: #dc2626; border: none; padding: 9px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-    .badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-    .badge-approved { background: rgba(16,185,129,.12); color: #059669; }
-    .badge-rejected { background: rgba(239,68,68,.12); color: #dc2626; }
-    .empty-state { color: var(--muted); font-size: 14px; text-align: center; padding: 40px; }
+    .page-header { margin-bottom: 32px; }
+    .page-header h1 { font-size: 24px; font-weight: 800; }
+    
+    .approval-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media(max-width: 1100px) { .approval-grid { grid-template-columns: 1fr; } }
+    
+    .card { background: var(--card); border-radius: 24px; padding: 28px; box-shadow: var(--shadow); height: fit-content; }
+    .card-header h3 { font-size: 17px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+    
+    .request-list { display: flex; flex-direction: column; gap: 20px; }
+    .req-item { padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg); }
+    
+    .student-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .student-info .name { font-weight: 800; font-size: 15px; }
+    .student-info .meta { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+    
+    .date-range, .dest, .date { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .reason { font-size: 13px; color: var(--muted); background: rgba(0,0,0,.02); padding: 8px; border-radius: 8px; line-height: 1.5; }
+    
+    .req-actions { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border); padding-top: 16px; }
+    .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; transition: border .2s; margin-top: 12px; }
+    .form-control:focus { border-color: var(--primary); }
+    
+    .btn-group { display: flex; gap: 10px; }
+    .btn-approve { flex: 1; background: #10b981; color: #fff; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    .btn-reject { flex: 1; background: #ef4444; color: #fff; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    
+    .empty-list { text-align: center; color: var(--muted); font-size: 14px; padding: 40px; }
   `]
 })
 export class RequestApprovalComponent implements OnInit {
-  activeTab = 'outgoing';
-  outgoings: any[] = [];
   homeGoings: any[] = [];
+  messCuts: any[] = [];
 
   constructor(private http: HttpClient, private auth: AuthService) { }
 
@@ -123,30 +129,24 @@ export class RequestApprovalComponent implements OnInit {
   load() {
     this.http.get<any>('http://localhost:5000/api/authority/requests', this.headers).subscribe({
       next: r => {
-        this.outgoings = r.outgoings || [];
         this.homeGoings = r.homeGoings || [];
+        this.messCuts = r.messCuts || [];
       },
       error: () => { }
     });
   }
 
-  approve(r: any, type: string) {
-    const url = type === 'outgoing'
-      ? `http://localhost:5000/api/authority/outgoing/${r._id}`
-      : `http://localhost:5000/api/authority/home-going/${r._id}`;
-    this.http.put(url, { status: 'approved', remarks: r._remarks || '' }, this.headers).subscribe({
-      next: () => { r.status = 'approved'; },
-      error: () => { }
+  updateHomeGoing(r: any, status: string) {
+    this.http.put(`http://localhost:5000/api/authority/home-going/${r._id}`, { status, remarks: r._remarks || '' }, this.headers).subscribe({
+      next: () => { this.load(); },
+      error: () => alert('Action failed')
     });
   }
 
-  reject(r: any, type: string) {
-    const url = type === 'outgoing'
-      ? `http://localhost:5000/api/authority/outgoing/${r._id}`
-      : `http://localhost:5000/api/authority/home-going/${r._id}`;
-    this.http.put(url, { status: 'rejected', remarks: r._remarks || '' }, this.headers).subscribe({
-      next: () => { r.status = 'rejected'; },
-      error: () => { }
+  updateMessCut(r: any, status: string) {
+    this.http.put(`http://localhost:5000/api/authority/mess-cut/${r._id}`, { status, remarks: r._remarks || '' }, this.headers).subscribe({
+      next: () => { this.load(); },
+      error: () => alert('Action failed')
     });
   }
 }

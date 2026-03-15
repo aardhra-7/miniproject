@@ -44,6 +44,9 @@ export const APP_ROUTES: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', loadComponent: () => import('./pages/authority/dashboard/dashboard.component').then(m => m.AuthorityDashboardComponent) },
       { path: 'requests', loadComponent: () => import('./pages/authority/request-approval/request-approval.component').then(m => m.RequestApprovalComponent) },
+      { path: 'notifications', loadComponent: () => import('./pages/authority/notifications/notifications.component').then(m => m.NotificationsComponent) },
+      { path: 'student-profiles', loadComponent: () => import('./pages/authority/profiles/student-profiles.component').then(m => m.StudentProfilesComponent) },
+      { path: 'faculty-profiles', loadComponent: () => import('./pages/authority/profiles/faculty-profiles.component').then(m => m.FacultyProfilesComponent) },
     ]
   },
   {
