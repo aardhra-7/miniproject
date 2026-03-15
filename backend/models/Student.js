@@ -1,33 +1,37 @@
-const mongoose = require('mongoose');
+const { mockStudents } = require('../mockData');
 
-const studentSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    required: true,
-    unique: true,
-    ref: 'User'
+// Mock Student model
+const Student = {
+  findOne: async (query) => {
+    return mockStudents.find(student => student.userId === query.userId);
   },
-  name: { type: String, required: true },
-  rollNumber: { type: String, required: true },
-  department: String,
-  year: { type: Number, enum: [1, 2, 3, 4] },
-  roomNumber: String,
-  wing: String,
-  hostelBlock: String,
-  parentName: String,
-  parentPhone: String,
-  address: String,
-  city: String,
-  state: String,
-  dateOfBirth: Date,
-  gender: { type: String, enum: ['Male', 'Female', 'Other'] },
-  bloodGroup: String,
-  medicalInfo: String,
-  email: String,
-  phone: String,
-  profileImage: String,
-  admissionDate: { type: Date, default: Date.now },
-  isActive: { type: Boolean, default: true }
-}, { timestamps: true });
 
-module.exports = mongoose.model('Student', studentSchema);
+  find: async (query) => {
+    return mockStudents;
+  },
+
+  create: async (data) => {
+    const newStudent = { ...data, admissionDate: new Date(), isActive: true };
+    mockStudents.push(newStudent);
+    return newStudent;
+  },
+
+  findByIdAndUpdate: async (id, updates) => {
+    const student = mockStudents.find(s => s._id === id || s.userId === id);
+    if (student) {
+      Object.assign(student, updates);
+      return student;
+    }
+    return null;
+  },
+
+  findByIdAndDelete: async (id) => {
+    const index = mockStudents.findIndex(s => s._id === id || s.userId === id);
+    if (index > -1) {
+      return mockStudents.splice(index, 1)[0];
+    }
+    return null;
+  }
+};
+
+module.exports = Student;

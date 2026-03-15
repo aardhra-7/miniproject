@@ -7,12 +7,11 @@ router.use(protect);
 router.use(authorize('authority'));
 
 router.get('/requests', ctrl.getPendingRequests);
-router.patch('/home-goings/:id', ctrl.updateHomeGoing);
-router.patch('/mess-cuts/:id', ctrl.updateMessCut);
+router.put('/home-going/:id', ctrl.updateHomeGoing);
+router.put('/outgoing/:id', ctrl.updateOutgoing);
 router.post('/attendance', ctrl.markAttendance);
-router.get('/attendance', ctrl.getAttendance);
 router.get('/students', ctrl.getStudents);
-router.post('/notifications', ctrl.sendNotification);
 router.get('/reports', ctrl.getReports);
+router.post('/publish-notification', ctrl.publishNotification);
 
 module.exports = router;

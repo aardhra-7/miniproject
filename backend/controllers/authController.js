@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const User = require('../models/User');
-const Student = require('../models/Student');
 
 const generateToken = (userId, role) => {
   return jwt.sign({ userId, role }, process.env.JWT_SECRET || 'staysphere_secret', {
@@ -32,14 +32,8 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Update last login
     user.lastLogin = new Date();
     await user.save();
-
-    let profileData = null;
-    if (role === 'student') {
-      profileData = await Student.findOne({ userId });
-    }
 
     const token = generateToken(user.userId, user.role);
 
@@ -51,10 +45,8 @@ exports.login = async (req, res) => {
         name: user.name,
         role: user.role,
         email: user.email,
-        phone: user.phone,
-        profileImage: user.profileImage
-      },
-      profile: profileData
+        phone: user.phone
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -62,58 +54,120 @@ exports.login = async (req, res) => {
   }
 };
 
-//  Get current user
-exports.getMe = async (req, res) => {
+// Admin Registration
+exports.registerAdmin = async (req, res) => {
   try {
-    const user = await User.findOne({ userId: req.user.userId }).select('-password');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    const { userId, password, name, email, phone } = req.body;
+
+    const userExists = await User.findOne({ $or: [{ userId }, { email }] });
+    if (userExists) {
+      return res.status(400).json({ message: 'User with this ID or Email already exists' });
     }
-    res.json({ success: true, user });
+
+    const user = await User.create({
+      userId,
+      password,
+      name,
+      email,
+      phone,
+      role: 'admin'
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin registered successfully',
+      user: { userId: user.userId, role: user.role }
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-//   Seed initial users
-exports.seedUsers = async (req, res) => {
+// Forgot Password
+exports.forgotPassword = async (req, res) => {
   try {
-    const existingAdmin = await User.findOne({ userId: 'ADM-001' });
-    if (existingAdmin) {
-      return res.json({ message: 'Users already seeded' });
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'No user found with that email' });
     }
 
-    const users = [
-      { userId: 'STU-2023-033', password: 'Flower@13', role: 'student', name: 'Aardhra Karthik', email: 'aardhra@student.edu', phone: '9876543210' },
-      { userId: 'STU-2023-034', password: 'student123', role: 'student', name: 'Rahul Menon', email: 'rahul@student.edu', phone: '9876543211' },
-      { userId: 'STU-2023-035', password: 'student123', role: 'student', name: 'Priya Nair', email: 'priya@student.edu', phone: '9876543212' },
-      { userId: 'FAC-2024-010', password: 'faculty123', role: 'faculty', name: 'Dr. Rajan Kumar', email: 'rajan@faculty.edu', phone: '9876543220' },
-      { userId: 'FAC-2024-011', password: 'faculty123', role: 'faculty', name: 'Prof. Anitha Suresh', email: 'anitha@faculty.edu', phone: '9876543221' },
-      { userId: 'ADM-001', password: 'admin123', role: 'admin', name: 'System Administrator', email: 'admin@staysphere.edu', phone: '9876543200' },
-      { userId: 'AUTH-001', password: 'authority123', role: 'authority', name: 'Warden Sreeja Mohan', email: 'warden@staysphere.edu', phone: '9876543230' },
-      { userId: 'AUTH-002', password: 'authority123', role: 'authority', name: 'Wing Secretary Ajith Kumar', email: 'wingsec@staysphere.edu', phone: '9876543231' }
-    ];
+    // Generate reset token
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
 
-    for (const userData of users) {
-      const user = new User(userData);
+    await user.save();
+
+    // Create reset url
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    const message = `
+      <h1>Password Reset Request</h1>
+      <p>Please click on the link below to reset your password:</p>
+      <a href="${resetUrl}" clicktracking=off>${resetUrl}</a>
+      <p>This link will expire in 30 minutes.</p>
+    `;
+
+    try {
+      const sendEmail = require('../utils/sendEmail');
+      await sendEmail({
+        email: user.email,
+        subject: 'StaySphere - Password Reset',
+        html: message
+      });
+
+      res.json({
+        success: true,
+        message: 'Reset link sent to email'
+      });
+    } catch (err) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
       await user.save();
+      console.error('Email error:', err);
+      return res.status(500).json({ message: 'Email could not be sent' });
     }
-
-    // Seed student profiles
-    const students = [
-      { userId: 'STU-2023-033', name: 'Aardhra Karthik', rollNumber: '21CS033', department: 'Computer Science', year: 3, roomNumber: '204', wing: 'A', hostelBlock: 'Block 1', parentName: 'Karthik Mohan', parentPhone: '9845123456', gender: 'Female', bloodGroup: 'B+', city: 'Punalur', state: 'Kerala' },
-      { userId: 'STU-2023-034', name: 'Rahul Menon', rollNumber: '21ME034', department: 'Mechanical Engineering', year: 3, roomNumber: '305', wing: 'B', hostelBlock: 'Block 2', parentName: 'Suresh Menon', parentPhone: '9845123457', gender: 'Male', bloodGroup: 'O+', city: 'Kochi', state: 'Kerala' },
-      { userId: 'STU-2023-035', name: 'Priya Nair', rollNumber: '21EC035', department: 'Electronics', year: 3, roomNumber: '112', wing: 'A', hostelBlock: 'Block 1', parentName: 'Vijayan Nair', parentPhone: '9845123458', gender: 'Female', bloodGroup: 'A+', city: 'Thiruvananthapuram', state: 'Kerala' }
-    ];
-
-    for (const studentData of students) {
-      const student = new Student(studentData);
-      await student.save();
-    }
-
-    res.json({ success: true, message: 'Users seeded successfully', count: users.length });
   } catch (error) {
-    console.error('Seed error:', error);
-    res.status(500).json({ message: 'Seed error', error: error.message });
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Reset Password
+exports.resetPassword = async (req, res) => {
+  try {
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ success: true, message: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const { password, ...userWithoutPassword } = user;
+    res.json({ success: true, user: userWithoutPassword });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 };

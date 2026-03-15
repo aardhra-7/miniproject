@@ -1,79 +1,152 @@
-const Student = require('../models/Student');
+const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const MessCut = require('../models/MessCut');
 const HomeGoing = require('../models/HomeGoing');
 const Notification = require('../models/Notification');
-const User = require('../models/User');
 
-//  Get faculty profile
+// View profile
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findOne({ userId: req.user.userId }).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
     res.json({ success: true, user });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Get students
-exports.getStudents = async (req, res) => {
+// Update profile
+exports.updateProfile = async (req, res) => {
   try {
-    const students = await Student.find({ isActive: true }).sort({ name: 1 });
-    res.json({ success: true, students });
+    const { name, phone, email } = req.body;
+    const user = await User.findById(req.user._id);
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (email) user.email = email;
+    await user.save();
+    res.json({ success: true, user });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Mark attendance
-exports.markAttendance = async (req, res) => {
-  try {
-    const { studentId, date, status, session } = req.body;
-    const student = await Student.findOne({ userId: studentId });
+// --- Attendance Section ---
 
-    const attendance = new Attendance({
-      studentId,
-      studentName: student?.name || studentId,
-      date: new Date(date),
-      status,
-      session: session || 'morning',
-      markedBy: req.user.userId
+exports.markSelfAttendance = async (req, res) => {
+  try {
+    const { status, date } = req.body;
+    const attendanceDate = date ? new Date(date) : new Date();
+    attendanceDate.setHours(0, 0, 0, 0);
+
+    // Check if already marked
+    const existing = await Attendance.findOne({
+      student: req.user._id,
+      date: attendanceDate
     });
+
+    if (existing) {
+      existing.status = status;
+      await existing.save();
+      return res.json({ success: true, message: 'Attendance updated', attendance: existing });
+    }
+
+    const user = await User.findById(req.user._id);
+    const attendance = new Attendance({
+      student: req.user._id,
+      studentName: user.name,
+      date: attendanceDate,
+      status,
+      role: 'faculty',
+      markedBy: req.user._id
+    });
+
     await attendance.save();
-    res.json({ success: true, attendance });
+    res.json({ success: true, message: 'Attendance marked', attendance });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-//  Get mess cut requests
-exports.getMessCuts = async (req, res) => {
+exports.getSelfAttendanceHistory = async (req, res) => {
   try {
-    const messCuts = await MessCut.find({ status: 'pending' }).sort({ createdAt: -1 });
-    res.json({ success: true, messCuts });
+    const history = await Attendance.find({ student: req.user._id }).sort({ date: -1 }).limit(30);
+    res.json({ success: true, history });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Get home going requests
-exports.getHomeGoings = async (req, res) => {
+// --- Mess Cut Section ---
+
+exports.requestMessCut = async (req, res) => {
   try {
-    const homeGoings = await HomeGoing.find().sort({ createdAt: -1 });
-    res.json({ success: true, homeGoings });
+    const { startDate, endDate, reason } = req.body;
+    const messCut = new MessCut({
+      student: req.user._id, // Using 'student' field as 'user' ref
+      startDate,
+      endDate,
+      reason,
+      status: 'pending' // Authority must approve
+    });
+    await messCut.save();
+    res.json({ success: true, message: 'Mess cut request submitted to authority', messCut });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Get notifications
+exports.getSelfMessCuts = async (req, res) => {
+  try {
+    const history = await MessCut.find({ student: req.user._id }).sort({ createdAt: -1 });
+    res.json({ success: true, history });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// --- Home Going Section ---
+
+exports.markHomeGoing = async (req, res) => {
+  try {
+    const { leaveDate, returnDate, reason, place } = req.body;
+    const user = await User.findById(req.user._id);
+    const entry = new HomeGoing({
+      student: req.user._id,
+      studentName: user.name,
+      leaveDate,
+      returnDate,
+      reason,
+      place,
+      status: 'marked' // No approval required for faculty
+    });
+    await entry.save();
+    res.json({ success: true, message: 'Home going recorded', entry });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getSelfHomeGoings = async (req, res) => {
+  try {
+    const history = await HomeGoing.find({ student: req.user._id }).sort({ createdAt: -1 });
+    res.json({ success: true, history });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// --- Notifications Section ---
+
 exports.getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({
-      $or: [{ targetRole: 'all' }, { targetRole: 'faculty' }]
+      $or: [
+        { user: req.user._id },
+        { targetRole: 'faculty' },
+        { targetRole: 'all' }
+      ]
     }).sort({ createdAt: -1 });
     res.json({ success: true, notifications });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -1,59 +1,58 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Router } from '@angular/router';
 
-export interface User {
-  userId: string;
-  name: string;
-  role: string;
-  email?: string;
-  phone?: string;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
-  private apiUrl = 'http://localhost:5000/api/auth';
-  private userSubject = new BehaviorSubject<User | null>(this.getStoredUser());
-  user$ = this.userSubject.asObservable();
+  private apiUrl = 'http://localhost:5000/api';
+  private userSubject = new BehaviorSubject<any>(this.getUserFromStorage());
+  public user$ = this.userSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient) { }
 
-  login(userId: string, password: string, role: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, { userId, password, role }).pipe(
+  private getUserFromStorage() {
+    const user = localStorage.getItem('staySphereUser');
+    return user ? JSON.parse(user) : null;
+  }
+
+  get userValue() {
+    return this.userSubject.value;
+  }
+
+  login(credentials: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/login`, credentials).pipe(
       tap((res: any) => {
-        if (res.token) {
-          localStorage.setItem('ss_token', res.token);
-          localStorage.setItem('ss_user', JSON.stringify(res.user));
-          this.userSubject.next(res.user);
-        }
+        const userData = { ...res.user, token: res.token };
+        localStorage.setItem('staySphereUser', JSON.stringify(userData));
+        this.userSubject.next(userData);
       })
     );
   }
 
-  logout() {
-    localStorage.removeItem('ss_token');
-    localStorage.removeItem('ss_user');
-    this.userSubject.next(null);
-    this.router.navigate(['/splash']);
+  registerAdmin(userData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/register-admin`, userData);
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('ss_token');
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/reset-password/${token}`, { password });
+  }
+
+  logout() {
+    localStorage.removeItem('staySphereUser');
+    this.userSubject.next(null);
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    return !!this.userValue;
   }
 
-  getCurrentUser(): User | null {
-    return this.userSubject.value;
-  }
-
-  private getStoredUser(): User | null {
-    try {
-      const data = localStorage.getItem('ss_user');
-      return data ? JSON.parse(data) : null;
-    } catch { return null; }
+  getRole(): string | null {
+    return this.userValue?.role || null;
   }
 }

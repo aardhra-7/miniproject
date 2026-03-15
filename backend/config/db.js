@@ -7,20 +7,11 @@ const connectDB = async () => {
       connectTimeoutMS: 30000,
     };
     const conn = await mongoose.connect(process.env.MONGODB_URI, options);
-    console.log(`🚀 MongoDB Connected: ${conn.connection.host}`);
+    console.log(` MongoDB Connected`);
   } catch (error) {
-    console.error(`❌ MongoDB connection error: ${error.message}`);
-
-    if (error.message.includes('timeout') || error.message.includes('connect')) {
-      console.log('⚠️  POSSIBLE CAUSE: Your network may be blocking port 27017 (standard for MongoDB).');
-      console.log('   Try switching to a Mobile Hotspot to confirm.');
-    }
-
-    console.log('💡 TIP: Go to MongoDB Atlas -> Network Access and ensure "0.0.0.0/0" is added to allow access from any network.');
+    console.error(` MongoDB connection error: ${error.message}`);
     process.exit(1);
   }
 };
-
-connectDB();
 
 module.exports = connectDB;

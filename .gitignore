@@ -20,6 +20,9 @@ Thumbs.db
 # Build files
 dist/
 build/
+.angular/
+frontend/.angular/
+backend/.angular/
 
 # Firebase service account key
 *firebase-adminsdk*.json

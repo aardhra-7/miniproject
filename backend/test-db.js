@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-console.log('Testing connection with URI:', process.env.MONGODB_URI.replace(/:([^:@]+)@/, ':****@'));
+console.log('Testing connection with URI:', process.env.MONGODB_URI);
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
-        console.log(' SUCCESS: Connected to MongoDB Atlas!');
+        console.log(' SUCCESS: Connected');
         process.exit(0);
     })
     .catch((err) => {

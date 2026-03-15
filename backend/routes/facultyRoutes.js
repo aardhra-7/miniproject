@@ -7,10 +7,17 @@ router.use(protect);
 router.use(authorize('faculty'));
 
 router.get('/profile', ctrl.getProfile);
-router.get('/students', ctrl.getStudents);
-router.post('/attendance', ctrl.markAttendance);
-router.get('/mess-cuts', ctrl.getMessCuts);
-router.get('/home-goings', ctrl.getHomeGoings);
+router.put('/profile', ctrl.updateProfile);
+
+router.post('/attendance', ctrl.markSelfAttendance);
+router.get('/attendance', ctrl.getSelfAttendanceHistory);
+
+router.post('/mess-cut', ctrl.requestMessCut);
+router.get('/mess-cut', ctrl.getSelfMessCuts);
+
+router.post('/home-going', ctrl.markHomeGoing);
+router.get('/home-going', ctrl.getSelfHomeGoings);
+
 router.get('/notifications', ctrl.getNotifications);
 
 module.exports = router;

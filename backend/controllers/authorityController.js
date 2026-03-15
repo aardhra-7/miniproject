@@ -1,4 +1,4 @@
-const Student = require('../models/Student');
+const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const MessCut = require('../models/MessCut');
 const HomeGoing = require('../models/HomeGoing');
@@ -8,69 +8,101 @@ const Notification = require('../models/Notification');
 // Get pending requests
 exports.getPendingRequests = async (req, res) => {
   try {
-    const homeGoings = await HomeGoing.find({ status: 'pending' }).sort({ createdAt: -1 });
-    const messCuts = await MessCut.find({ status: 'pending' }).sort({ createdAt: -1 });
-    const outgoings = await Outgoing.find({ status: 'active' }).sort({ createdAt: -1 });
-    res.json({ success: true, homeGoings, messCuts, outgoings });
+    const homeGoings = await HomeGoing.find({ status: 'pending' }).populate('student', 'name roomNumber').sort({ createdAt: -1 });
+    const outgoings = await Outgoing.find({ status: 'pending' }).populate('student', 'name roomNumber').sort({ createdAt: -1 });
+    res.json({ success: true, homeGoings, outgoings });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//  Approve/Reject home going
+// Approve/Reject requests
 exports.updateHomeGoing = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, remarks } = req.body;
     const record = await HomeGoing.findByIdAndUpdate(id, {
-      status, remarks, approvedBy: req.user.userId, approvedAt: new Date()
+      status, remarks, approvedBy: req.user._id, approvedAt: new Date()
     }, { new: true });
+
+    // Send notification
+    if (record) {
+      await Notification.create({
+        user: record.student,
+        title: 'Home-going Request Status',
+        message: `Your home-going request has been ${status}.`,
+        type: 'request'
+      });
+    }
+
     res.json({ success: true, record });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//  Approve/Reject mess cut
-exports.updateMessCut = async (req, res) => {
+exports.updateOutgoing = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, remarks } = req.body;
-    const messCut = await MessCut.findByIdAndUpdate(id, {
-      status, remarks, approvedBy: req.user.userId, approvedAt: new Date()
+    const record = await Outgoing.findByIdAndUpdate(id, {
+      status, remarks, approvedBy: req.user._id, approvedAt: new Date()
     }, { new: true });
-    res.json({ success: true, messCut });
+
+    // Send notification
+    if (record) {
+      await Notification.create({
+        user: record.student,
+        title: 'Outgoing Request Status',
+        message: `Your outgoing request has been ${status}.`,
+        type: 'request'
+      });
+    }
+
+    res.json({ success: true, record });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//  Mark attendance
+// Mark attendance room-wise
 exports.markAttendance = async (req, res) => {
   try {
-    const { studentId, date, status, session, remarks } = req.body;
-    const student = await Student.findOne({ userId: studentId });
+    const { studentId, date, status, remarks } = req.body;
+    // studentId here is the _id from the student (User model)
+    const student = await User.findById(studentId);
+
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    const attendanceDate = new Date(date);
+    attendanceDate.setHours(0, 0, 0, 0);
 
     const existing = await Attendance.findOne({
-      studentId, date: new Date(date), session: session || 'morning'
+      student: studentId,
+      date: attendanceDate
     });
+
     if (existing) {
       existing.status = status;
       existing.remarks = remarks;
-      existing.markedBy = req.user.userId;
+      existing.markedBy = req.user._id;
+      existing.role = req.user.role;
       await existing.save();
       return res.json({ success: true, attendance: existing });
     }
 
     const attendance = new Attendance({
-      studentId,
-      studentName: student?.name || studentId,
-      date: new Date(date),
+      student: studentId,
+      studentName: student.name,
+      admissionNo: student.admissionNo,
+      roomNumber: student.roomNumber,
+      date: attendanceDate,
       status,
-      session: session || 'morning',
       remarks,
-      markedBy: req.user.userId
+      markedBy: req.user._id,
+      role: req.user.role
     });
+
     await attendance.save();
     res.json({ success: true, attendance });
   } catch (error) {
@@ -78,72 +110,48 @@ exports.markAttendance = async (req, res) => {
   }
 };
 
-// Get attendance by date/wing
-exports.getAttendance = async (req, res) => {
-  try {
-    const { date, wing } = req.query;
-    let query = {};
-    if (date) {
-      const d = new Date(date);
-      query.date = { $gte: d, $lt: new Date(d.setDate(d.getDate() + 1)) };
-    }
-    const attendance = await Attendance.find(query).sort({ date: -1 });
-    res.json({ success: true, attendance });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Get all students for monitoring
+// Get students for monitoring
 exports.getStudents = async (req, res) => {
   try {
-    const students = await Student.find().sort({ name: 1 });
+    const students = await User.find({ role: 'student' })
+      .select('name roomNumber phone admissionNo semester passingYear')
+      .sort({ roomNumber: 1 });
     res.json({ success: true, students });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Send notification
-exports.sendNotification = async (req, res) => {
+// Get reports
+exports.getReports = async (req, res) => {
   try {
-    const { title, message, type, targetRole, priority } = req.body;
-    const notification = new Notification({
-      title, message, type: type || 'announcement',
-      targetRole: targetRole || 'student',
-      priority: priority || 'medium',
-      sentBy: req.user.userId
-    });
-    await notification.save();
-    res.json({ success: true, notification });
+    const { month, year } = req.query;
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    const attendance = await Attendance.find({
+      date: { $gte: startDate, $lte: endDate }
+    }).populate('student', 'name roomNumber').sort({ date: 1, roomNumber: 1 });
+
+    res.json({ success: true, attendance });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//  Get reports
-exports.getReports = async (req, res) => {
+// Notification Management
+exports.publishNotification = async (req, res) => {
   try {
-    const { from, to } = req.query;
-    const startDate = from ? new Date(from) : new Date(new Date().setDate(1));
-    const endDate = to ? new Date(to) : new Date();
-
-    const homeGoings = await HomeGoing.find({ createdAt: { $gte: startDate, $lte: endDate } });
-    const outgoings = await Outgoing.find({ createdAt: { $gte: startDate, $lte: endDate } });
-    const messCuts = await MessCut.find({ createdAt: { $gte: startDate, $lte: endDate } });
-    const attendance = await Attendance.find({ date: { $gte: startDate, $lte: endDate } });
-
-    res.json({
-      success: true,
-      reports: { homeGoings, outgoings, messCuts, attendance },
-      summary: {
-        totalHomeGoings: homeGoings.length,
-        approvedHomeGoings: homeGoings.filter(h => h.status === 'approved').length,
-        totalOutgoings: outgoings.length,
-        totalMessCuts: messCuts.length,
-        approvedMessCuts: messCuts.filter(m => m.status === 'approved').length
-      }
+    const { title, message, targetRole, type } = req.body;
+    const notification = new Notification({
+      title,
+      message,
+      targetRole: targetRole || 'all',
+      type: type || 'general',
+      sender: req.user._id
     });
+    await notification.save();
+    res.json({ success: true, message: 'Announcement published successfully', notification });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -13,7 +13,11 @@ exports.protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'staysphere_secret');
-    req.user = decoded;
+    const user = await User.findOne({ userId: decoded.userId }).select('-password');
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+    req.user = user;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Not authorized, token failed' });

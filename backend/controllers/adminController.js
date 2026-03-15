@@ -1,31 +1,40 @@
 const User = require('../models/User');
-const Student = require('../models/Student');
 const Attendance = require('../models/Attendance');
 const MessCut = require('../models/MessCut');
 const Outgoing = require('../models/Outgoing');
 const HomeGoing = require('../models/HomeGoing');
 const Notification = require('../models/Notification');
 
-//  Get dashboard statistics
+// Get dashboard statistics
 exports.getDashboardStats = async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments({ isActive: true });
-    const totalStudents = await Student.countDocuments({ isActive: true });
-    const pendingApprovals = await HomeGoing.countDocuments({ status: 'pending' }) +
-      await MessCut.countDocuments({ status: 'pending' });
-    const activeRequests = await Outgoing.countDocuments({ status: 'active' });
-    const todayAttendance = await Attendance.countDocuments({
-      date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    // 1. Weekly Outgoing Summary
+    const totalOutgoing = await Outgoing.countDocuments({ createdAt: { $gte: oneWeekAgo } });
+    const approvedOutgoing = await Outgoing.countDocuments({
+      createdAt: { $gte: oneWeekAgo },
+      status: 'approved'
     });
+    const returnedStudents = await Outgoing.countDocuments({
+      createdAt: { $gte: oneWeekAgo },
+      returnStatus: 'returned'
+    });
+
+    // 2. Request Distribution
+    const pendingApprovals = (await Outgoing.countDocuments({ status: 'pending' })) +
+      (await HomeGoing.countDocuments({ status: 'pending' })) +
+      (await MessCut.countDocuments({ status: 'pending' }));
+
+    const outgoingCount = await Outgoing.countDocuments();
+    const homegoingCount = await HomeGoing.countDocuments();
 
     res.json({
       success: true,
       stats: {
-        totalUsers,
-        totalStudents,
-        pendingApprovals,
-        activeRequests,
-        todayAttendance
+        weekly: { totalOutgoing, approvedOutgoing, returnedStudents },
+        distribution: { outgoingCount, homegoingCount, pendingApprovals }
       }
     });
   } catch (error) {
@@ -33,16 +42,19 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-//  Get all users
+// User Management
 exports.getAllUsers = async (req, res) => {
   try {
     const { role, search } = req.query;
     let query = {};
     if (role) query.role = role;
-    if (search) query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { userId: { $regex: search, $options: 'i' } }
-    ];
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { userId: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
     const users = await User.find(query).select('-password').sort({ createdAt: -1 });
     res.json({ success: true, users });
   } catch (error) {
@@ -50,138 +62,129 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// Create user
 exports.createUser = async (req, res) => {
   try {
-    const { userId, password, role, name, email, phone } = req.body;
-    const exists = await User.findOne({ userId });
-    if (exists) return res.status(400).json({ message: 'User ID already exists' });
+    const userData = req.body;
+    const exists = await User.findOne({
+      $or: [{ userId: userData.userId }, { email: userData.email }]
+    });
 
-    const user = new User({ userId, password, role, name, email, phone });
+    if (exists) return res.status(400).json({ message: 'User ID or Email already exists' });
+
+    const user = new User(userData);
     await user.save();
-    res.json({ success: true, message: 'User created', user: { userId: user.userId, name: user.name, role: user.role } });
+    res.json({ success: true, message: 'User created successfully', user: { userId: user.userId, name: user.name } });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//  Update user
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    delete updates.password;
-    const user = await User.findOneAndUpdate({ userId: id }, updates, { new: true }).select('-password');
+    // Don't update password through this route unless explicitly provided and hashed
+    if (updates.password) {
+      const bcrypt = require('bcryptjs');
+      const salt = await bcrypt.genSalt(10);
+      updates.password = await bcrypt.hash(updates.password, salt);
+    } else {
+      delete updates.password;
+    }
+
+    const user = await User.findByIdAndUpdate(id, updates, { new: true }).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ success: true, user });
+
+    res.json({ success: true, message: 'User updated successfully', user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//     Toggle user status
-exports.toggleUserStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await User.findOne({ userId: id });
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    user.isActive = !user.isActive;
-    await user.save();
-    res.json({ success: true, message: `User ${user.isActive ? 'activated' : 'deactivated'}`, isActive: user.isActive });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-//   Delete user
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    await User.findOneAndDelete({ userId: id });
-    res.json({ success: true, message: 'User deleted' });
+    const user = await User.findByIdAndDelete(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//   Get all students
-exports.getAllStudents = async (req, res) => {
+// Outgoing Return Tracking
+exports.getReturnTracking = async (req, res) => {
   try {
-    const students = await Student.find().sort({ name: 1 });
-    res.json({ success: true, students });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-//  Get outgoing records
-exports.getOutgoings = async (req, res) => {
-  try {
-    const outgoings = await Outgoing.find().sort({ createdAt: -1 }).limit(100);
+    const outgoings = await Outgoing.find()
+      .populate('student', 'name roomNumber admissionNo')
+      .sort({ createdAt: -1 });
     res.json({ success: true, outgoings });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//   Get home going records
-exports.getHomeGoings = async (req, res) => {
-  try {
-    const homeGoings = await HomeGoing.find().sort({ createdAt: -1 }).limit(100);
-    res.json({ success: true, homeGoings });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Get attendance records
-exports.getAttendance = async (req, res) => {
-  try {
-    const { date, studentId } = req.query;
-    let query = {};
-    if (date) query.date = { $gte: new Date(date), $lt: new Date(new Date(date).setDate(new Date(date).getDate() + 1)) };
-    if (studentId) query.studentId = studentId;
-    const attendance = await Attendance.find(query).sort({ date: -1 }).limit(200);
-    res.json({ success: true, attendance });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-//   Send notification
-exports.sendNotification = async (req, res) => {
-  try {
-    const { title, message, type, targetRole, priority } = req.body;
-    const notification = new Notification({
-      title, message, type, targetRole, priority,
-      sentBy: req.user.userId
-    });
-    await notification.save();
-    res.json({ success: true, message: 'Notification sent', notification });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-//     Get all mess cuts
+// Mess Management / Reports
 exports.getMessCuts = async (req, res) => {
   try {
-    const messCuts = await MessCut.find().sort({ createdAt: -1 });
+    const messCuts = await MessCut.find().populate('student', 'name roomNumber userId').sort({ createdAt: -1 });
     res.json({ success: true, messCuts });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Approve/Reject mess cut
-exports.updateMessCut = async (req, res) => {
+// Security Settings
+exports.updateSecuritySettings = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { status, remarks } = req.body;
-    const messCut = await MessCut.findByIdAndUpdate(id, {
-      status, remarks, approvedBy: req.user.userId, approvedAt: new Date()
-    }, { new: true });
-    res.json({ success: true, messCut });
+    const { email, password } = req.body;
+    const fs = require('fs');
+    const path = require('path');
+
+    // 1. Update DB
+    const admin = await User.findById(req.user._id);
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+
+    if (email) admin.email = email;
+    if (password) admin.password = password;
+    await admin.save();
+
+    // 2. Update .env
+    const envPath = path.resolve(__dirname, '../../.env');
+    if (fs.existsSync(envPath)) {
+      let envLines = fs.readFileSync(envPath, 'utf8').split('\n');
+
+      if (email) {
+        envLines = envLines.map(line => line.startsWith('EMAIL_USER=') ? `EMAIL_USER=${email}` : line);
+      }
+      if (password) {
+        // Requirement says update both; usually EMAIL_PASS is an app password,
+        // but it specifies updating it here.
+        envLines = envLines.map(line => line.startsWith('EMAIL_PASS=') ? `EMAIL_PASS=${password}` : line);
+      }
+
+      fs.writeFileSync(envPath, envLines.join('\n'));
+    }
+
+    res.json({ success: true, message: 'Settings updated and .env synced' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Notification Management
+exports.publishNotification = async (req, res) => {
+  try {
+    const { title, message, targetRole, type } = req.body;
+    const notification = new Notification({
+      title,
+      message,
+      targetRole: targetRole || 'all',
+      type: type || 'general',
+      sender: req.user._id
+    });
+    await notification.save();
+    res.json({ success: true, message: 'Notification published successfully', notification });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
