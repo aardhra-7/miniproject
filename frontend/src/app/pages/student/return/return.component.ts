@@ -7,10 +7,10 @@ import { TopbarComponent } from '../../../components/topbar/topbar.component';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
-    selector: 'app-return',
-    standalone: true,
-    imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
-    template: `
+  selector: 'app-return',
+  standalone: true,
+  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
+  template: `
     <div class="dashboard-layout">
       <app-sidebar [role]="'student'"></app-sidebar>
       <div class="main-content">
@@ -19,49 +19,49 @@ import { AuthService } from '../../../services/auth.service';
 
           <div class="page-header">
             <h1>Mark Return</h1>
-            <p>Use your GPS to confirm you are back inside hostel premises.</p>
+            <p>Confirm your arrival back at the hostel using GPS verification.</p>
           </div>
 
           <div class="content-grid">
             <!-- GPS Card -->
-            <div class="card gps-card">
-              <div class="gps-icon">📍</div>
-              <h3>GPS Location Check</h3>
-              <p>Your current location must be within hostel premises (200m radius) to mark return.</p>
+            <div class="card gps-card" [class.located]="located">
+              <div class="gps-icon">{{ located ? '✅' : '📍' }}</div>
+              <h3>GPS Verification</h3>
+              <p>You must be within the specified hostel radius to mark your return successfully.</p>
 
-              <div class="location-status" [class.located]="located">
-                <span *ngIf="!located && !locating">Location not captured</span>
-                <span *ngIf="locating">Detecting location...</span>
-                <span *ngIf="located">
-                  ✅ Location: {{ lat?.toFixed(4) }}, {{ lng?.toFixed(4) }}
-                </span>
+              <div class="location-status" *ngIf="located">
+                <span>Latitude: <strong>{{ lat?.toFixed(6) }}</strong></span>
+                <span>Longitude: <strong>{{ lng?.toFixed(6) }}</strong></span>
               </div>
 
-              <button class="btn-secondary" (click)="getLocation()" [disabled]="locating">
-                {{ locating ? '⏳ Detecting...' : '📡 Get My Location' }}
+              <button class="btn-gps" (click)="getLocation()" [disabled]="locating">
+                {{ locating ? '⏳ Detecting Location...' : located ? '📡 Refresh Location' : '📡 Get My Location' }}
               </button>
             </div>
 
             <!-- Return Form -->
             <div class="card">
-              <h3 class="card-title">Mark Return</h3>
+              <h3 class="card-title">Select Active Outing</h3>
 
               <div class="form-group">
-                <label>Request Type</label>
-                <select class="form-control" [(ngModel)]="type">
-                  <option value="outgoing">Outgoing</option>
-                  <option value="homegoing">Home Going</option>
-                </select>
+                <label>Category</label>
+                <div class="category-toggle">
+                   <button [class.active]="type === 'outgoing'" (click)="type = 'outgoing'; loadPendingRecords()">Outgoing</button>
+                   <button [class.active]="type === 'homegoing'" (click)="type = 'homegoing'; loadPendingRecords()">Home Going</button>
+                </div>
               </div>
 
               <div class="form-group">
-                <label>Select Request</label>
+                <label>Choose Record *</label>
                 <select class="form-control" [(ngModel)]="selectedId">
-                  <option value="">-- Select --</option>
+                  <option value="">-- Select Pending Return --</option>
                   <option *ngFor="let r of pendingRecords" [value]="r._id">
-                    {{ r.place || r.reason }} ({{ r.date | date:'dd MMM' }})
+                    {{ r.place }} (Left: {{ (r.date || r.leaveDate) | date:'dd MMM, hh:mm a' }})
                   </option>
                 </select>
+                <div *ngIf="pendingRecords.length === 0 && !loading" class="no-records-hint">
+                   No pending {{ type }}s found to return from.
+                </div>
               </div>
 
               <div class="form-row">
@@ -75,25 +75,25 @@ import { AuthService } from '../../../services/auth.service';
                 </div>
               </div>
 
-              <div *ngIf="msg" [class]="msgType === 'success' ? 'success-msg' : 'error-msg'">{{ msg }}</div>
+              <div *ngIf="msg" [class]="msgType === 'success' ? 'msg-success' : 'msg-error'">{{ msg }}</div>
 
               <button class="btn-primary" (click)="markReturn()" [disabled]="!located || !selectedId || loading">
-                {{ loading ? 'Marking...' : '✅ Mark Return' }}
+                {{ loading ? 'Updating...' : '✅ Confirm Return' }}
               </button>
             </div>
           </div>
 
-          <!-- Recent Returns -->
+          <!-- Recent History -->
           <div class="card mt">
-            <h3 class="card-title">Recent Return History</h3>
-            <div *ngIf="returnHistory.length === 0" class="empty-state">No return records yet.</div>
+            <h3 class="card-title">Recent Returns</h3>
+            <div *ngIf="returnHistory.length === 0" class="empty-state">No recent returns.</div>
             <div class="history-list">
               <div *ngFor="let h of returnHistory" class="history-item">
-                <div>
-                  <div class="request-title">{{ h.place || h.reason }}</div>
-                  <div class="request-meta">{{ h.date | date:'dd MMM yyyy' }}</div>
+                <div class="item-main">
+                  <div class="item-title">{{ h.place }}</div>
+                  <div class="item-meta">Returned: {{ h.returnDate | date:'dd MMM yyyy' }} at {{ h.returnTime }}</div>
                 </div>
-                <span [class]="'badge badge-' + h.status">{{ h.status | titlecase }}</span>
+                <span class="badge badge-returned">Returned</span>
               </div>
             </div>
           </div>
@@ -102,126 +102,144 @@ import { AuthService } from '../../../services/auth.service';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     :host { display: contents; }
     .page-header { margin-bottom: 28px; }
     .page-header h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
     .page-header p { color: var(--muted); font-size: 14px; }
-    .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    @media(max-width:900px) { .content-grid { grid-template-columns: 1fr; } }
-    .card { background: var(--card); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); }
+
+    .content-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
+    @media(max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border-radius: 20px; padding: 28px; box-shadow: var(--shadow); }
     .card-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
-    .gps-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-    .gps-icon { font-size: 48px; }
-    .gps-card h3 { font-weight: 700; }
-    .gps-card p { color: var(--muted); font-size: 14px; max-width: 280px; }
-    .location-status { padding: 12px 20px; border-radius: 10px; background: var(--bg); font-size: 13px; font-weight: 500; }
-    .location-status.located { background: rgba(16,185,129,.12); color: #059669; }
-    .btn-secondary { background: transparent; border: 2px solid var(--primary); color: var(--primary); padding: 12px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; }
-    .btn-secondary:disabled { opacity: .6; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .gps-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; border: 2px solid transparent; }
+    .gps-card.located { border-color: #10b981; background: rgba(16, 185, 129, .02); }
+    .gps-icon { font-size: 48px; margin-bottom: 8px; }
+    .gps-card p { font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 240px; }
+    .location-status { display: flex; flex-direction: column; font-size: 12px; font-weight: 700; color: #059669; padding: 12px; background: rgba(16, 185, 129, .08); border-radius: 12px; }
+    
+    .btn-gps { background: var(--bg); border: 2px solid var(--primary); color: var(--primary); padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .2s; }
+    .btn-gps:hover { background: var(--primary); color: #fff; }
+
+    .category-toggle { display: flex; gap: 8px; background: var(--bg); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
+    .category-toggle button { flex: 1; border: none; background: none; padding: 8px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--muted); }
+    .category-toggle button.active { background: var(--card); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,.05); }
+
     .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-    .form-control { width: 100%; padding: 11px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; transition: border-color .2s; background: var(--bg); color: var(--text); }
+    .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .form-control { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 14px; outline: none; background: var(--bg); color: var(--text); }
     .form-control:focus { border-color: var(--primary); }
-    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; padding: 13px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
+    .no-records-hint { font-size: 12px; color: #dc2626; margin-top: 8px; font-weight: 600; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; transition: transform .2s; }
+    .btn-primary:active { transform: scale(.98); }
     .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
-    .error-msg { color: var(--danger); font-size: 13px; margin-bottom: 10px; }
-    .success-msg { color: var(--success); font-size: 13px; margin-bottom: 10px; }
+
+    .msg-success { color: #059669; background: #dcfce7; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+    .msg-error { color: #dc2626; background: #fee2e2; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+
     .mt { margin-top: 24px; }
     .history-list { display: flex; flex-direction: column; gap: 12px; }
-    .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; }
-    .request-title { font-weight: 600; font-size: 14px; }
-    .request-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-    .badge-returned { background: rgba(16,185,129,.12); color: #059669; }
-    .badge-completed { background: rgba(14,165,233,.12); color: #0284c7; }
-    .badge-approved { background: rgba(245,158,11,.12); color: #d97706; }
-    .empty-state { color: var(--muted); font-size: 14px; text-align: center; padding: 24px; }
+    .history-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 1px solid var(--border); border-radius: 14px; }
+    .item-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+    .item-meta { font-size: 12px; color: var(--muted); }
+    .badge-returned { background: rgba(16, 185, 129, .12); color: #059669; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+    .empty-state { text-align: center; color: var(--muted); padding: 40px; font-size: 14px; }
   `]
 })
 export class ReturnComponent implements OnInit {
-    lat: number | null = null;
-    lng: number | null = null;
-    located = false;
-    locating = false;
-    type = 'outgoing';
-    selectedId = '';
-    returnDate = new Date().toISOString().split('T')[0];
-    returnTime = '';
-    pendingRecords: any[] = [];
-    returnHistory: any[] = [];
-    loading = false;
-    msg = '';
-    msgType = '';
+  lat: number | null = null;
+  lng: number | null = null;
+  located = false;
+  locating = false;
+  type = 'outgoing';
+  selectedId = '';
+  returnDate = new Date().toISOString().split('T')[0];
+  returnTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  pendingRecords: any[] = [];
+  returnHistory: any[] = [];
+  loading = false;
+  msg = '';
+  msgType = '';
 
-    constructor(private http: HttpClient, private auth: AuthService) { }
+  constructor(private http: HttpClient, private auth: AuthService) { }
 
-    ngOnInit() { this.loadPendingRecords(); }
+  ngOnInit() {
+    this.loadPendingRecords();
+  }
 
-    get headers() {
-        return { headers: new HttpHeaders({ Authorization: `Bearer ${this.auth.userValue?.token}` }) };
+  get headers() {
+    return { headers: new HttpHeaders({ Authorization: `Bearer ${this.auth.userValue?.token}` }) };
+  }
+
+  getLocation() {
+    if ('geolocation' in navigator) {
+      this.locating = true;
+      this.msg = '';
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          this.lat = pos.coords.latitude;
+          this.lng = pos.coords.longitude;
+          this.located = true;
+          this.locating = false;
+        },
+        err => {
+          this.msg = 'Location access denied. Please allow GPS to mark return.';
+          this.msgType = 'error';
+          this.locating = false;
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      this.msg = 'Geolocation not supported.';
+      this.msgType = 'error';
     }
+  }
 
-    getLocation() {
-        if ('geolocation' in navigator) {
-            this.locating = true;
-            navigator.geolocation.getCurrentPosition(
-                pos => {
-                    this.lat = pos.coords.latitude;
-                    this.lng = pos.coords.longitude;
-                    this.located = true;
-                    this.locating = false;
-                },
-                () => {
-                    this.msg = 'Could not get location. Please enable GPS.';
-                    this.msgType = 'error';
-                    this.locating = false;
-                },
-                { enableHighAccuracy: true }
-            );
-        } else {
-            this.msg = 'Geolocation is not supported by your browser.';
-            this.msgType = 'error';
-        }
-    }
+  loadPendingRecords() {
+    const endpoint = this.type === 'outgoing' ? 'outgoing' : 'home-going';
+    this.selectedId = '';
+    this.msg = '';
 
-    loadPendingRecords() {
-        const endpoint = this.type === 'outgoing' ? 'outgoing' : 'home-going';
-        this.http.get<any>(`http://localhost:5000/api/student/${endpoint}`, this.headers).subscribe({
-            next: r => {
-                const all = r.outgoings || r.homeGoings || [];
-                this.pendingRecords = all.filter((x: any) => x.status === 'approved' && !x.isReturned);
-                this.returnHistory = all.filter((x: any) => x.status === 'returned' || x.status === 'completed');
-            },
-            error: () => { }
-        });
-    }
+    this.http.get<any>(`http://localhost:5000/api/student/${endpoint}`, this.headers).subscribe({
+      next: r => {
+        const all = r.outgoings || r.homeGoings || [];
+        // Pending return means status is 'active' OR 'approved' (for homegoing) and not yet returned
+        this.pendingRecords = all.filter((x: any) => (x.status === 'active' || x.status === 'approved') && !x.isReturned);
+        this.returnHistory = all.filter((x: any) => x.status === 'returned' || x.isReturned).slice(0, 5);
+      },
+      error: () => { }
+    });
+  }
 
-    markReturn() {
-        if (!this.located || !this.selectedId) return;
-        this.loading = true;
-        const payload = {
-            type: this.type,
-            requestId: this.selectedId,
-            latitude: this.lat,
-            longitude: this.lng,
-            returnDate: this.returnDate,
-            returnTime: this.returnTime
-        };
-        this.http.post<any>('http://localhost:5000/api/student/return', payload, this.headers).subscribe({
-            next: res => {
-                this.msg = res.message || 'Return marked!';
-                this.msgType = 'success';
-                this.loading = false;
-                this.selectedId = '';
-                this.loadPendingRecords();
-            },
-            error: err => {
-                this.msg = err.error?.message || 'Return marking failed.';
-                this.msgType = 'error';
-                this.loading = false;
-            }
-        });
-    }
+  markReturn() {
+    if (!this.located || !this.selectedId) return;
+    this.loading = true;
+    this.msg = '';
+
+    this.http.post<any>('http://localhost:5000/api/student/return', {
+      type: this.type,
+      requestId: this.selectedId,
+      latitude: this.lat,
+      longitude: this.lng,
+      returnDate: this.returnDate,
+      returnTime: this.returnTime
+    }, this.headers).subscribe({
+      next: res => {
+        this.msg = res.message || 'Return marked successfully!';
+        this.msgType = 'success';
+        this.loading = false;
+        this.selectedId = '';
+        this.loadPendingRecords();
+      },
+      error: err => {
+        this.msg = err.error?.message || 'Return marking failed.';
+        this.msgType = 'error';
+        this.loading = false;
+      }
+    });
+  }
 }

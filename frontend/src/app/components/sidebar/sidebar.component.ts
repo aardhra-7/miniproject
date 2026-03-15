@@ -46,11 +46,17 @@ import { AuthService } from '../../services/auth.service';
           <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/return']">
             <span class="nav-icon">↩️</span> Mark Return
           </a>
+          <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/notifications']">
+            <span class="nav-icon">📢</span> Notifications
+          </a>
         </ng-container>
 
         <ng-container *ngIf="role === 'admin'">
           <a class="nav-item" routerLinkActive="active" [routerLink]="['/admin/users']">
             <span class="nav-icon">👥</span> User Management
+          </a>
+          <a class="nav-item" routerLinkActive="active" [routerLink]="['/admin/notifications']">
+            <span class="nav-icon">📢</span> Notifications
           </a>
           <a class="nav-item" routerLinkActive="active" [routerLink]="['/admin/security']">
             <span class="nav-icon">🛡️</span> Security Settings

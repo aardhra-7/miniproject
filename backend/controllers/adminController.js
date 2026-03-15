@@ -4,6 +4,7 @@ const MessCut = require('../models/MessCut');
 const Outgoing = require('../models/Outgoing');
 const HomeGoing = require('../models/HomeGoing');
 const Notification = require('../models/Notification');
+const HostelSettings = require('../models/HostelSettings');
 
 // Get dashboard statistics
 exports.getDashboardStats = async (req, res) => {
@@ -134,14 +135,14 @@ exports.getMessCuts = async (req, res) => {
   }
 };
 
-// Security Settings
+// Security Settings — update credentials + hostel settings
 exports.updateSecuritySettings = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, locationCoordinates, returnRadius, minMessCutDays } = req.body;
     const fs = require('fs');
     const path = require('path');
 
-    // 1. Update DB
+    // 1. Update admin credentials in DB
     const admin = await User.findById(req.user._id);
     if (!admin) return res.status(404).json({ message: 'Admin not found' });
 
@@ -149,7 +150,21 @@ exports.updateSecuritySettings = async (req, res) => {
     if (password) admin.password = password;
     await admin.save();
 
-    // 2. Update .env
+    // 2. Update hostel settings
+    if (locationCoordinates || returnRadius !== undefined || minMessCutDays !== undefined) {
+      const settingsUpdate = {};
+      if (locationCoordinates) settingsUpdate.locationCoordinates = locationCoordinates;
+      if (returnRadius !== undefined) settingsUpdate.returnRadius = returnRadius;
+      if (minMessCutDays !== undefined) settingsUpdate.minMessCutDays = minMessCutDays;
+
+      await HostelSettings.findOneAndUpdate(
+        { admin: admin._id },
+        { $set: settingsUpdate },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+    }
+
+    // 3. Update .env
     const envPath = path.resolve(__dirname, '../../.env');
     if (fs.existsSync(envPath)) {
       let envLines = fs.readFileSync(envPath, 'utf8').split('\n');
@@ -158,15 +173,65 @@ exports.updateSecuritySettings = async (req, res) => {
         envLines = envLines.map(line => line.startsWith('EMAIL_USER=') ? `EMAIL_USER=${email}` : line);
       }
       if (password) {
-        // Requirement says update both; usually EMAIL_PASS is an app password,
-        // but it specifies updating it here.
         envLines = envLines.map(line => line.startsWith('EMAIL_PASS=') ? `EMAIL_PASS=${password}` : line);
       }
 
       fs.writeFileSync(envPath, envLines.join('\n'));
     }
 
-    res.json({ success: true, message: 'Settings updated and .env synced' });
+    res.json({ success: true, message: 'Settings updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get hostel settings for the current admin
+exports.getHostelSettings = async (req, res) => {
+  try {
+    let settings = await HostelSettings.findOne({ admin: req.user._id });
+    if (!settings) {
+      // Create default settings
+      settings = await HostelSettings.create({
+        hostelName: req.user.hostelName || 'Default Hostel',
+        admin: req.user._id,
+        locationCoordinates: { latitude: 0, longitude: 0 },
+        returnRadius: 100,
+        minMessCutDays: 3
+      });
+    }
+    res.json({ success: true, settings });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Transfer admin role to another user
+exports.transferAdmin = async (req, res) => {
+  try {
+    const { newAdminUserId } = req.body;
+    const currentAdmin = await User.findById(req.user._id);
+    if (!currentAdmin || currentAdmin.role !== 'admin') {
+      return res.status(403).json({ message: 'Only admins can transfer admin role' });
+    }
+
+    const newAdmin = await User.findOne({ userId: newAdminUserId });
+    if (!newAdmin) return res.status(404).json({ message: 'Target user not found' });
+
+    // Transfer hostel settings to new admin
+    await HostelSettings.findOneAndUpdate(
+      { admin: currentAdmin._id },
+      { admin: newAdmin._id }
+    );
+
+    // Update roles
+    newAdmin.role = 'admin';
+    newAdmin.hostelName = currentAdmin.hostelName;
+    await newAdmin.save();
+
+    currentAdmin.role = 'faculty'; // Demote current admin to faculty
+    await currentAdmin.save();
+
+    res.json({ success: true, message: `Admin role transferred to ${newAdmin.name}` });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -185,6 +250,30 @@ exports.publishNotification = async (req, res) => {
     });
     await notification.save();
     res.json({ success: true, message: 'Notification published successfully', notification });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get all notifications (admin view)
+exports.getNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find({ sender: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate('sender', 'name userId');
+    res.json({ success: true, notifications });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete a notification
+exports.deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await Notification.findOneAndDelete({ _id: id, sender: req.user._id });
+    if (!notification) return res.status(404).json({ message: 'Notification not found' });
+    res.json({ success: true, message: 'Notification deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

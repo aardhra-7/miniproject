@@ -21,6 +21,7 @@ export const APP_ROUTES: Routes = [
       { path: 'outgoing', loadComponent: () => import('./pages/student/outgoing/outgoing.component').then(m => m.OutgoingComponent) },
       { path: 'home-going', loadComponent: () => import('./pages/student/home-going/home-going.component').then(m => m.HomeGoingComponent) },
       { path: 'return', loadComponent: () => import('./pages/student/return/return.component').then(m => m.ReturnComponent) },
+      { path: 'notifications', loadComponent: () => import('./pages/student/notifications/view-notifications.component').then(m => m.ViewNotificationsComponent) },
     ]
   },
   {
@@ -31,6 +32,7 @@ export const APP_ROUTES: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', loadComponent: () => import('./pages/admin/dashboard/dashboard.component').then(m => m.AdminDashboardComponent) },
       { path: 'users', loadComponent: () => import('./pages/admin/user-management/user-management.component').then(m => m.UserManagementComponent) },
+      { path: 'notifications', loadComponent: () => import('./pages/admin/notifications/notifications.component').then(m => m.NotificationsComponent) },
       { path: 'security', loadComponent: () => import('./pages/admin/security-settings/security-settings.component').then(m => m.SecuritySettingsComponent) },
     ]
   },

@@ -29,16 +29,22 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'authority', 'faculty', 'student'],
     required: true
   },
+
+  // Common fields
+  department: { type: String },
+  dateOfBirth: { type: Date },
+  bloodGroup: { type: String },
+  hostelName: { type: String },
+  collegeName: { type: String },
+
   // Student specific fields
   admissionNo: { type: String },
   semester: { type: String },
   dateOfAdmission: { type: Date },
-  passingYear: { type: String },
   roomNumber: { type: String },
   guardiansName: { type: String },
   guardiansPhone: { type: String },
   address: { type: String },
-  year: { type: String }, // redundant with passingYear? keep both if requested
 
   // Security settings
   resetPasswordToken: String,

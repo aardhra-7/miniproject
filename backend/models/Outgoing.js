@@ -13,20 +13,17 @@ const outgoingSchema = new mongoose.Schema({
     default: Date.now
   },
   timeLeaving: String,
-  expectedReturnTime: String,
-  reason: String,
   place: String,
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'returned'],
-    default: 'pending'
+    enum: ['active', 'returned'],
+    default: 'active'
   },
-  returnTime: Date,
+  returnTime: String,
   returnDate: Date,
-  returnStatus: {
-    type: String,
-    enum: ['not-returned', 'returned'],
-    default: 'not-returned'
+  isReturned: {
+    type: Boolean,
+    default: false
   },
   gpsLocation: {
     lat: Number,

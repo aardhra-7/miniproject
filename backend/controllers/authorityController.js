@@ -5,12 +5,18 @@ const HomeGoing = require('../models/HomeGoing');
 const Outgoing = require('../models/Outgoing');
 const Notification = require('../models/Notification');
 
-// Get pending requests
+// Get pending requests (Only Home-going and Mess Cut)
 exports.getPendingRequests = async (req, res) => {
   try {
-    const homeGoings = await HomeGoing.find({ status: 'pending' }).populate('student', 'name roomNumber').sort({ createdAt: -1 });
-    const outgoings = await Outgoing.find({ status: 'pending' }).populate('student', 'name roomNumber').sort({ createdAt: -1 });
-    res.json({ success: true, homeGoings, outgoings });
+    const homeGoings = await HomeGoing.find({ status: 'pending', recordingType: 'request' })
+      .populate('student', 'name roomNumber')
+      .sort({ createdAt: -1 });
+
+    const messCuts = await MessCut.find({ status: 'pending' })
+      .populate('student', 'name roomNumber')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, homeGoings, messCuts });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -25,12 +31,11 @@ exports.updateHomeGoing = async (req, res) => {
       status, remarks, approvedBy: req.user._id, approvedAt: new Date()
     }, { new: true });
 
-    // Send notification
     if (record) {
       await Notification.create({
         user: record.student,
         title: 'Home-going Request Status',
-        message: `Your home-going request has been ${status}.`,
+        message: `Your home-going request for ${record.leaveDate.toLocaleDateString()} has been ${status}.`,
         type: 'request'
       });
     }
@@ -41,20 +46,19 @@ exports.updateHomeGoing = async (req, res) => {
   }
 };
 
-exports.updateOutgoing = async (req, res) => {
+exports.updateMessCut = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, remarks } = req.body;
-    const record = await Outgoing.findByIdAndUpdate(id, {
+    const record = await MessCut.findByIdAndUpdate(id, {
       status, remarks, approvedBy: req.user._id, approvedAt: new Date()
     }, { new: true });
 
-    // Send notification
     if (record) {
       await Notification.create({
         user: record.student,
-        title: 'Outgoing Request Status',
-        message: `Your outgoing request has been ${status}.`,
+        title: 'Mess-cut Request Status',
+        message: `Your mess-cut request from ${record.startDate.toLocaleDateString()} has been ${status}.`,
         type: 'request'
       });
     }
@@ -64,12 +68,14 @@ exports.updateOutgoing = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Marking Return Approval (If needed, but usually once returned it's completed)
+// Currently outgoing is auto-verified if GPS matches.
 
 // Mark attendance room-wise
 exports.markAttendance = async (req, res) => {
   try {
     const { studentId, date, status, remarks } = req.body;
-    // studentId here is the _id from the student (User model)
     const student = await User.findById(studentId);
 
     if (!student) return res.status(404).json({ message: 'Student not found' });
@@ -114,7 +120,7 @@ exports.markAttendance = async (req, res) => {
 exports.getStudents = async (req, res) => {
   try {
     const students = await User.find({ role: 'student' })
-      .select('name roomNumber phone admissionNo semester passingYear')
+      .select('name roomNumber phone admissionNo semester collegeName hostelName')
       .sort({ roomNumber: 1 });
     res.json({ success: true, students });
   } catch (error) {

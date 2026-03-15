@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const User = require('../models/User');
+const HostelSettings = require('../models/HostelSettings');
 
 const generateToken = (userId, role) => {
   return jwt.sign({ userId, role }, process.env.JWT_SECRET || 'staysphere_secret', {
@@ -45,7 +46,8 @@ exports.login = async (req, res) => {
         name: user.name,
         role: user.role,
         email: user.email,
-        phone: user.phone
+        phone: user.phone,
+        hostelName: user.hostelName
       }
     });
   } catch (error) {
@@ -54,10 +56,20 @@ exports.login = async (req, res) => {
   }
 };
 
-// Admin Registration
+// Admin Registration — only one admin per hostel
 exports.registerAdmin = async (req, res) => {
   try {
-    const { userId, password, name, email, phone } = req.body;
+    const { userId, password, name, email, phone, hostelName } = req.body;
+
+    if (!hostelName) {
+      return res.status(400).json({ message: 'Hostel Name is required for admin registration' });
+    }
+
+    // Check if an admin already exists for this hostel
+    const existingAdmin = await User.findOne({ role: 'admin', hostelName });
+    if (existingAdmin) {
+      return res.status(400).json({ message: `An admin already exists for hostel "${hostelName}". Only that admin can transfer the role.` });
+    }
 
     const userExists = await User.findOne({ $or: [{ userId }, { email }] });
     if (userExists) {
@@ -70,13 +82,23 @@ exports.registerAdmin = async (req, res) => {
       name,
       email,
       phone,
-      role: 'admin'
+      role: 'admin',
+      hostelName
+    });
+
+    // Create default hostel settings
+    await HostelSettings.create({
+      hostelName,
+      admin: user._id,
+      locationCoordinates: { latitude: 0, longitude: 0 },
+      returnRadius: 100,
+      minMessCutDays: 3
     });
 
     res.status(201).json({
       success: true,
       message: 'Admin registered successfully',
-      user: { userId: user.userId, role: user.role }
+      user: { userId: user.userId, role: user.role, hostelName }
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

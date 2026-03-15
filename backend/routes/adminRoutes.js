@@ -13,6 +13,10 @@ router.put('/users/:id', ctrl.updateUser);
 router.delete('/users/:id', ctrl.deleteUser);
 router.get('/return-tracking', ctrl.getReturnTracking);
 router.put('/security-settings', ctrl.updateSecuritySettings);
+router.get('/hostel-settings', ctrl.getHostelSettings);
+router.post('/transfer-admin', ctrl.transferAdmin);
 router.post('/publish-notification', ctrl.publishNotification);
+router.get('/notifications', ctrl.getNotifications);
+router.delete('/notifications/:id', ctrl.deleteNotification);
 
 module.exports = router;

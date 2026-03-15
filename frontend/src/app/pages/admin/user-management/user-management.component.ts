@@ -44,20 +44,22 @@ import { AuthService } from '../../../services/auth.service';
                   <th>Name</th>
                   <th>Role</th>
                   <th>Email</th>
-                  <th>Room / Dept</th>
+                  <th>Dept / Room</th>
+                  <th>Hostel</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngIf="filtered.length === 0">
-                  <td colspan="6" class="empty-td">No users found.</td>
+                  <td colspan="7" class="empty-td">No users found.</td>
                 </tr>
                 <tr *ngFor="let u of filtered">
                   <td class="mono">{{ u.userId }}</td>
                   <td>{{ u.name }}</td>
                   <td><span [class]="'role-badge role-' + u.role">{{ u.role | titlecase }}</span></td>
                   <td>{{ u.email || '—' }}</td>
-                  <td>{{ u.roomNo || u.department || '—' }}</td>
+                  <td>{{ u.department || u.roomNumber || '—' }}</td>
+                  <td>{{ u.hostelName || '—' }}</td>
                   <td>
                     <button class="btn-icon edit" (click)="openEdit(u)">✏️</button>
                     <button class="btn-icon delete" (click)="deleteUser(u._id)">🗑️</button>
@@ -115,6 +117,51 @@ import { AuthService } from '../../../services/auth.service';
                   </div>
                 </div>
 
+                <!-- Common Extended Fields -->
+                <div class="form-section">
+                  <h4>Additional Information</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Department</label>
+                      <input class="form-control" formControlName="department" placeholder="e.g., CSE, EEE" />
+                    </div>
+                    <div class="form-group">
+                      <label>Date of Birth</label>
+                      <input type="date" class="form-control" formControlName="dateOfBirth" />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Blood Group</label>
+                      <select class="form-control" formControlName="bloodGroup">
+                        <option value="">Select</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>College Name</label>
+                      <input class="form-control" formControlName="collegeName" placeholder="e.g., GEC Palakkad" />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Hostel Name</label>
+                      <input class="form-control" formControlName="hostelName" placeholder="e.g., MH-1, LH-2" />
+                    </div>
+                    <div class="form-group" *ngIf="userForm.get('role')?.value === 'faculty'">
+                      <label>Room Number (Faculty)</label>
+                      <input class="form-control" formControlName="roomNumber" placeholder="e.g., F-201" />
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Student Specific Information -->
                 <div *ngIf="userForm.get('role')?.value === 'student'" class="form-section">
                   <h4>Student Details</h4>
@@ -134,18 +181,8 @@ import { AuthService } from '../../../services/auth.service';
                       <input class="form-control" formControlName="semester" placeholder="e.g., S6" />
                     </div>
                     <div class="form-group">
-                      <label>Passing Year</label>
-                      <input class="form-control" formControlName="passingYear" placeholder="e.g., 2026" />
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group">
                       <label>Room Number</label>
                       <input class="form-control" formControlName="roomNumber" placeholder="e.g., 101" />
-                    </div>
-                    <div class="form-group">
-                      <label>Passing Year (redundant)</label>
-                      <input class="form-control" formControlName="year" placeholder="e.g., 2026" />
                     </div>
                   </div>
                   <div class="form-row">
@@ -205,7 +242,7 @@ import { AuthService } from '../../../services/auth.service';
     .btn-icon:hover { background: var(--bg); }
     .empty-td { text-align: center; color: var(--muted); padding: 40px !important; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 999; }
-    .modal { background: var(--card); border-radius: 20px; padding: 32px; width: 90%; max-width: 640px; max-height: 90vh; overflow-y: auto; }
+    .modal { background: var(--card); border-radius: 20px; padding: 32px; width: 90%; max-width: 680px; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
     .modal h3 { font-size: 18px; font-weight: 700; margin: 0; }
     .btn-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); }
@@ -215,7 +252,7 @@ import { AuthService } from '../../../services/auth.service';
     .form-group { margin-bottom: 0; }
     .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
     .full-width { grid-column: span 2; }
-    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px; pt: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 16px; }
     .btn-cancel { background: transparent; border: 2px solid var(--border); color: var(--muted); padding: 11px 22px; border-radius: 10px; cursor: pointer; font-weight: 600; }
     .btn-save { background: var(--primary); color: #fff; border: none; padding: 11px 22px; border-radius: 10px; cursor: pointer; font-weight: 600; }
     .btn-save:disabled { opacity: .7; }
@@ -242,15 +279,20 @@ export class UserManagementComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
       password: [''],
+      // Common extended fields
+      department: [''],
+      dateOfBirth: [''],
+      bloodGroup: [''],
+      hostelName: [''],
+      collegeName: [''],
+      // Student fields
       admissionNo: [''],
       roomNumber: [''],
       semester: [''],
       dateOfAdmission: [''],
-      passingYear: [''],
       guardiansName: [''],
       guardiansPhone: [''],
-      address: [''],
-      year: ['']
+      address: ['']
     });
   }
 
@@ -290,6 +332,13 @@ export class UserManagementComponent implements OnInit {
     this.editMode = true;
     this.editId = u._id;
     this.userForm.patchValue(u);
+    // Format dates for input[type=date]
+    if (u.dateOfBirth) {
+      this.userForm.patchValue({ dateOfBirth: new Date(u.dateOfBirth).toISOString().split('T')[0] });
+    }
+    if (u.dateOfAdmission) {
+      this.userForm.patchValue({ dateOfAdmission: new Date(u.dateOfAdmission).toISOString().split('T')[0] });
+    }
     this.userForm.get('password')?.clearValidators();
     this.userForm.get('userId')?.disable();
     this.saveError = '';

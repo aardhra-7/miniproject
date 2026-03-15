@@ -8,15 +8,28 @@ const homeGoingSchema = new mongoose.Schema({
   },
   studentName: String,
   roomNumber: String,
-  reason: String,
-  leaveDate: Date,
-  returnDate: Date,
+  leaveDate: {
+    type: Date,
+    required: true
+  },
   time: String,
   place: String,
-  // No approval required according to requirements
+  reason: String, // Kept for history though not strictly requested in form
   status: {
     type: String,
-    default: 'marked'
+    enum: ['pending', 'approved', 'rejected', 'active', 'returned'],
+    default: 'pending'
+  },
+  isReturned: {
+    type: Boolean,
+    default: false
+  },
+  returnDate: Date,
+  returnTime: String,
+  recordingType: {
+    type: String,
+    enum: ['request', 'recording'],
+    default: 'request'
   }
 }, {
   timestamps: true

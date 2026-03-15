@@ -1,73 +1,64 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../../components/topbar/topbar.component';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
-    selector: 'app-outgoing',
-    standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
-    template: `
+  selector: 'app-outgoing',
+  standalone: true,
+  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
+  template: `
     <div class="dashboard-layout">
       <app-sidebar [role]="'student'"></app-sidebar>
       <div class="main-content">
-        <app-topbar [pageTitle]="'Outgoing Request'"></app-topbar>
+        <app-topbar [pageTitle]="'Outgoing Marking'"></app-topbar>
         <main class="page-content">
 
           <div class="page-header">
-            <h1>Outgoing Request</h1>
-            <p>Submit your outgoing request. Authority approval required before leaving.</p>
+            <h1>Mark Outgoing</h1>
+            <p>Directly record your departure from the hostel. No approval required.</p>
           </div>
 
           <div class="content-grid">
-            <!-- Apply Form -->
+            <!-- Mark Form -->
             <div class="card">
-              <h3 class="card-title">Apply for Outgoing</h3>
-              <form [formGroup]="outForm" (ngSubmit)="onSubmit()">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" class="form-control" formControlName="date" />
-                  </div>
-                  <div class="form-group">
-                    <label>Time of Leaving</label>
-                    <input type="time" class="form-control" formControlName="timeLeaving" />
-                  </div>
+              <h3 class="card-title">New Outgoing</h3>
+              <div class="form-container">
+                <div class="form-group">
+                  <label>Date</label>
+                  <input type="date" class="form-control" [(ngModel)]="date" />
                 </div>
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Expected Return Time</label>
-                    <input type="time" class="form-control" formControlName="expectedReturnTime" />
+                    <label>Time of Leaving</label>
+                    <input type="time" class="form-control" [(ngModel)]="timeLeaving" />
                   </div>
                   <div class="form-group">
                     <label>Destination / Place</label>
-                    <input class="form-control" formControlName="place" placeholder="e.g. Town, Hospital" />
+                    <input class="form-control" [(ngModel)]="place" placeholder="e.g. Town, Gym" />
                   </div>
                 </div>
-                <div class="form-group">
-                  <label>Reason</label>
-                  <textarea class="form-control" formControlName="reason" rows="3" placeholder="State your reason clearly..."></textarea>
-                </div>
-                <div *ngIf="msg" [class]="msgType === 'success' ? 'success-msg' : 'error-msg'">{{ msg }}</div>
-                <button type="submit" class="btn-primary" [disabled]="outForm.invalid || loading">
-                  {{ loading ? 'Submitting...' : 'Submit Request →' }}
+
+                <div *ngIf="msg" [class]="msgType === 'success' ? 'msg-success' : 'msg-error'">{{ msg }}</div>
+
+                <button class="btn-primary" (click)="submitMarking()" [disabled]="!date || !timeLeaving || !place || loading">
+                  {{ loading ? 'Recording...' : '🚀 Mark Outgoing' }}
                 </button>
-              </form>
+              </div>
             </div>
 
-            <!-- History -->
+            <!-- Active & Recent -->
             <div class="card">
               <h3 class="card-title">My Outgoing History</h3>
-              <div *ngIf="records.length === 0" class="empty-state">No outgoing requests yet.</div>
-              <div class="request-list">
-                <div *ngFor="let r of records" class="request-item">
-                  <div class="request-info">
-                    <div class="request-title">{{ r.place || 'Not specified' }}</div>
-                    <div class="request-meta">{{ r.date | date:'dd MMM yyyy' }} — {{ r.reason }}</div>
-                    <div class="request-meta">Leave: {{ r.timeLeaving }} | Expected Return: {{ r.expectedReturnTime }}</div>
+              <div *ngIf="records.length === 0" class="empty-state">No records found.</div>
+              <div class="history-list">
+                <div *ngFor="let r of records" class="history-item" [class.item-active]="r.status === 'active'">
+                  <div class="item-main">
+                    <div class="item-title">{{ r.place }}</div>
+                    <div class="item-meta">{{ r.date | date:'dd MMM yyyy' }} at {{ r.timeLeaving }}</div>
                   </div>
                   <span [class]="'badge badge-' + r.status">{{ r.status | titlecase }}</span>
                 </div>
@@ -79,85 +70,91 @@ import { AuthService } from '../../../services/auth.service';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     :host { display: contents; }
     .page-header { margin-bottom: 28px; }
     .page-header h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
     .page-header p { color: var(--muted); font-size: 14px; }
+
     .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    @media(max-width:900px) { .content-grid { grid-template-columns: 1fr; } }
-    .card { background: var(--card); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); }
-    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+    @media(max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+    
+    .card { background: var(--card); border-radius: 20px; padding: 28px; box-shadow: var(--shadow); }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 24px; }
+
+    .form-container { display: flex; flex-direction: column; gap: 16px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-    .form-control { width: 100%; padding: 11px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; transition: border-color .2s; background: var(--bg); color: var(--text); }
+    .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .form-control { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 14px; outline: none; background: var(--bg); color: var(--text); }
     .form-control:focus { border-color: var(--primary); }
-    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; padding: 13px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
-    .btn-primary:disabled { opacity: .7; cursor: not-allowed; }
-    .error-msg { color: var(--danger); font-size: 13px; margin-bottom: 12px; }
-    .success-msg { color: var(--success); font-size: 13px; margin-bottom: 12px; }
-    .request-list { display: flex; flex-direction: column; gap: 12px; }
-    .request-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; }
-    .request-title { font-weight: 600; font-size: 14px; }
-    .request-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-    .badge-pending { background: rgba(245,158,11,.12); color: #d97706; }
-    .badge-approved { background: rgba(16,185,129,.12); color: #059669; }
-    .badge-returned { background: rgba(14,165,233,.12); color: #0284c7; }
-    .badge-rejected { background: rgba(239,68,68,.12); color: #dc2626; }
-    .empty-state { color: var(--muted); font-size: 14px; text-align: center; padding: 32px; }
+
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 8px; transition: transform .2s; }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    .msg-success { color: #059669; background: #dcfce7; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+    .msg-error { color: #dc2626; background: #fee2e2; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+
+    .history-list { display: flex; flex-direction: column; gap: 12px; }
+    .history-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 1px solid var(--border); border-radius: 14px; }
+    .item-active { border-color: var(--primary); background: rgba(14, 165, 233, .04); }
+    .item-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+    .item-meta { font-size: 12px; color: var(--muted); }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge-active { background: rgba(14, 165, 233, .12); color: #0284c7; }
+    .badge-returned { background: rgba(16, 185, 129, .12); color: #059669; }
+    .empty-state { text-align: center; color: var(--muted); padding: 40px; font-size: 14px; }
   `]
 })
 export class OutgoingComponent implements OnInit {
-    outForm: FormGroup;
-    records: any[] = [];
-    loading = false;
-    msg = '';
-    msgType = '';
+  date = new Date().toISOString().split('T')[0];
+  timeLeaving = '';
+  place = '';
+  loading = false;
+  msg = '';
+  msgType = '';
+  records: any[] = [];
 
-    constructor(private fb: FormBuilder, private http: HttpClient, private auth: AuthService) {
-        const today = new Date().toISOString().split('T')[0];
-        this.outForm = this.fb.group({
-            date: [today, Validators.required],
-            timeLeaving: ['', Validators.required],
-            expectedReturnTime: ['', Validators.required],
-            place: ['', Validators.required],
-            reason: ['', Validators.required]
-        });
-    }
+  constructor(private http: HttpClient, private auth: AuthService) { }
 
-    ngOnInit() { this.loadRecords(); }
+  ngOnInit() {
+    this.loadRecords();
+  }
 
-    get headers() {
-        const token = this.auth.userValue?.token;
-        return { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) };
-    }
+  get headers() {
+    return { headers: new HttpHeaders({ Authorization: `Bearer ${this.auth.userValue?.token}` }) };
+  }
 
-    loadRecords() {
-        this.http.get<any>('http://localhost:5000/api/student/outgoing', this.headers).subscribe({
-            next: r => this.records = r.outgoings || [],
-            error: () => { }
-        });
-    }
+  loadRecords() {
+    this.http.get<any>('http://localhost:5000/api/student/outgoing', this.headers).subscribe({
+      next: res => this.records = res.outgoings || [],
+      error: () => { }
+    });
+  }
 
-    onSubmit() {
-        if (this.outForm.valid) {
-            this.loading = true;
-            this.http.post('http://localhost:5000/api/student/outgoing', this.outForm.value, this.headers).subscribe({
-                next: () => {
-                    this.msg = 'Outgoing request submitted successfully!';
-                    this.msgType = 'success';
-                    this.outForm.reset({ date: new Date().toISOString().split('T')[0] });
-                    this.loadRecords();
-                    this.loading = false;
-                },
-                error: (err) => {
-                    this.msg = err.error?.message || 'Failed to submit.';
-                    this.msgType = 'error';
-                    this.loading = false;
-                }
-            });
-        }
-    }
+  submitMarking() {
+    if (!this.date || !this.timeLeaving || !this.place) return;
+    this.loading = true;
+    this.msg = '';
+
+    this.http.post('http://localhost:5000/api/student/outgoing', {
+      date: this.date,
+      timeLeaving: this.timeLeaving,
+      place: this.place
+    }, this.headers).subscribe({
+      next: (res: any) => {
+        this.msg = res.message || 'Outgoing recorded!';
+        this.msgType = 'success';
+        this.loading = false;
+        this.timeLeaving = '';
+        this.place = '';
+        this.loadRecords();
+      },
+      error: err => {
+        this.msg = err.error?.message || 'Failed to record.';
+        this.msgType = 'error';
+        this.loading = false;
+      }
+    });
+  }
 }

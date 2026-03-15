@@ -2,7 +2,9 @@ const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const Outgoing = require('../models/Outgoing');
 const HomeGoing = require('../models/HomeGoing');
+const MessCut = require('../models/MessCut');
 const Notification = require('../models/Notification');
+const HostelSettings = require('../models/HostelSettings');
 
 // Calculate distance between two GPS coordinates 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -46,10 +48,10 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Mark outgoing
+// Mark outgoing (Direct marking, no approval)
 exports.markOutgoing = async (req, res) => {
   try {
-    const { date, timeLeaving, expectedReturnTime, reason, place } = req.body;
+    const { date, timeLeaving, place } = req.body;
 
     const outgoing = new Outgoing({
       student: req.user._id,
@@ -57,33 +59,54 @@ exports.markOutgoing = async (req, res) => {
       roomNumber: req.user.roomNumber,
       date: new Date(date),
       timeLeaving,
-      expectedReturnTime,
-      reason,
       place,
-      status: 'pending'
+      status: 'active'
     });
 
     await outgoing.save();
-    res.json({ success: true, message: 'Outgoing request submitted', outgoing });
+    res.json({ success: true, message: 'Outgoing marked successfully', outgoing });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Mark home going
-exports.markHomeGoing = async (req, res) => {
+// Request home going (Approval needed)
+exports.requestHomeGoing = async (req, res) => {
   try {
-    const { date, time, place, reason } = req.body;
+    const { leaveDate, time, place } = req.body;
 
     const homeGoing = new HomeGoing({
       student: req.user._id,
       studentName: req.user.name,
       roomNumber: req.user.roomNumber,
-      date: new Date(date),
+      leaveDate: new Date(leaveDate),
       time,
       place,
-      reason,
-      status: 'marked' // No approval required
+      recordingType: 'request',
+      status: 'pending'
+    });
+
+    await homeGoing.save();
+    res.json({ success: true, message: 'Home-going request submitted', homeGoing });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Mark home going (Direct recording, no approval)
+exports.markHomeGoing = async (req, res) => {
+  try {
+    const { leaveDate, time, place } = req.body;
+
+    const homeGoing = new HomeGoing({
+      student: req.user._id,
+      studentName: req.user.name,
+      roomNumber: req.user.roomNumber,
+      leaveDate: new Date(leaveDate),
+      time,
+      place,
+      recordingType: 'recording',
+      status: 'active' // Direct active status
     });
 
     await homeGoing.save();
@@ -98,9 +121,13 @@ exports.markReturn = async (req, res) => {
   try {
     const { type, requestId, latitude, longitude, returnDate, returnTime } = req.body;
 
-    const HOSTEL_LAT = parseFloat(process.env.HOSTEL_LAT || '9.4265');
-    const HOSTEL_LON = parseFloat(process.env.HOSTEL_LON || '76.9246');
-    const ALLOWED_RADIUS = 200; // 200m radius
+    // Get hostel settings for the student's hostel
+    const settings = await HostelSettings.findOne({ hostelName: req.user.hostelName });
+
+    // Fallback defaults if settings not found
+    const HOSTEL_LAT = settings?.locationCoordinates?.lat || parseFloat(process.env.HOSTEL_LAT || '9.4265');
+    const HOSTEL_LON = settings?.locationCoordinates?.lng || parseFloat(process.env.HOSTEL_LON || '76.9246');
+    const ALLOWED_RADIUS = settings?.returnRadius || 200;
 
     const distance = calculateDistance(latitude, longitude, HOSTEL_LAT, HOSTEL_LON);
     const isWithinPremises = distance <= ALLOWED_RADIUS;
@@ -108,28 +135,82 @@ exports.markReturn = async (req, res) => {
     if (!isWithinPremises) {
       return res.status(400).json({
         success: false,
-        message: 'You must be inside hostel premises to mark return.'
+        message: `Geofence Violation: You are ${distance.toFixed(0)}m away. Required within ${ALLOWED_RADIUS}m of hostel.`
       });
     }
 
     let record;
     if (type === 'outgoing') {
       record = await Outgoing.findByIdAndUpdate(requestId, {
-        returnTime: new Date(`${returnDate}T${returnTime}`),
+        returnTime: returnTime,
         returnDate: new Date(returnDate),
         gpsLocation: { lat: latitude, lng: longitude },
-        returnStatus: 'returned',
         status: 'returned',
+        isReturned: true,
         isGpsVerified: true
       }, { new: true });
     } else {
       record = await HomeGoing.findByIdAndUpdate(requestId, {
         returnDate: new Date(returnDate),
-        status: 'returned'
+        returnTime: returnTime,
+        status: 'returned',
+        isReturned: true
       }, { new: true });
     }
 
+    if (!record) return res.status(404).json({ message: 'Record not found' });
+
     res.json({ success: true, message: 'Return marked successfully. Welcome back!', record });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Mess Cut Request
+exports.requestMessCut = async (req, res) => {
+  try {
+    const { startDate, endDate, reason } = req.body;
+
+    // Validation: Start date must be at least tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    const start = new Date(startDate);
+    if (start < tomorrow) {
+      return res.status(400).json({ message: 'Mess cut can only start from tomorrow onwards.' });
+    }
+
+    // Validation: Minimum days check from HostelSettings
+    const settings = await HostelSettings.findOne({ hostelName: req.user.hostelName });
+    const minDays = settings?.minMessCutDays || 3;
+
+    const diffTime = Math.abs(new Date(endDate) - new Date(startDate));
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    if (diffDays < minDays) {
+      return res.status(400).json({ message: `Mess cut must be for at least ${minDays} days.` });
+    }
+
+    const messCut = new MessCut({
+      student: req.user._id,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      reason,
+      status: 'pending'
+    });
+
+    await messCut.save();
+    res.json({ success: true, message: 'Mess cut request submitted successfully', messCut });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getMessCuts = async (req, res) => {
+  try {
+    const messCuts = await MessCut.find({ student: req.user._id }).sort({ createdAt: -1 });
+    res.json({ success: true, messCuts });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -165,9 +246,14 @@ exports.getAttendance = async (req, res) => {
 
 exports.getNotifications = async (req, res) => {
   try {
+    // Return notifications targeted to this specific user OR targeted to all/student role
     const notifications = await Notification.find({
-      user: req.user._id,
-    }).sort({ createdAt: -1 }).limit(20);
+      $or: [
+        { user: req.user._id },
+        { targetRole: { $in: ['all', 'student'] } }
+      ]
+    }).sort({ createdAt: -1 }).limit(30);
+
     res.json({ success: true, notifications });
   } catch (error) {
     res.status(500).json({ message: error.message });
