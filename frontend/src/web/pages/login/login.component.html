@@ -1,0 +1,70 @@
+<div class="login-page animate-fade-in">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">Stay<span>Sphere</span></div>
+            <div class="role-badge">{{ role | titlecase }} Access</div>
+        </div>
+
+        <div class="login-intro">
+            <h2>Welcome Back</h2>
+            <p>Login to manage your hostel activities</p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label><i class="bi bi-person mr-10"></i> User ID</label>
+                <input class="form-control" formControlName="userId" type="text" placeholder="Enter your ID" />
+            </div>
+
+            <div class="form-group">
+                <div class="label-row">
+                    <label><i class="bi bi-lock mr-10"></i> Password</label>
+                    <div class="forgot" (click)="showForgotModal = true">Forgot?</div>
+                </div>
+                <div class="input-wrapper">
+                    <input class="form-control" [type]="showPassword ? 'text' : 'password'" formControlName="password"
+                        placeholder="••••••••" />
+                    <button type="button" class="eye-btn" (click)="showPassword = !showPassword">
+                        <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div *ngIf="errorMessage" class="error-msg">
+                <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+            </div>
+
+            <button class="primary-btn btn-login" type="submit" [disabled]="loginForm.invalid || isLoading">
+                {{ isLoading ? 'Authenticating...' : 'Login to Dashboard' }} <i class="bi bi-chevron-right ml-10"></i>
+            </button>
+        </form>
+
+        <div *ngIf="role === 'admin'" class="admin-reg">
+            New hostel? <a routerLink="/register-admin">Register Administrator</a>
+        </div>
+
+        <button class="btn-back" (click)="goBack()">
+            <i class="bi bi-arrow-left"></i> Back to roles
+        </button>
+    </div>
+
+    <!-- Forgot Password  -->
+    <div class="modal-overlay" *ngIf="showForgotModal" (click)="showForgotModal = false">
+        <div class="modal animate-fade-in" (click)="$event.stopPropagation()">
+            <h3>Reset Password</h3>
+            <p>Enter your registered email to receive a secure reset link.</p>
+            <div class="form-group mt-20">
+                <input type="email" class="form-control" [(ngModel)]="resetEmail" [ngModelOptions]="{standalone: true}"
+                    placeholder="yourname@example.com" />
+            </div>
+            <div *ngIf="resetMsg" [class.error-msg]="isResetError" [class.success-msg]="!isResetError">
+                <i class="bi" [class.bi-check-circle]="!isResetError" [class.bi-exclamation-circle]="isResetError"></i>
+                {{ resetMsg }}
+            </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" (click)="showForgotModal = false">Cancel</button>
+                <button class="primary-btn" (click)="onForgotSubmit()" [disabled]="!resetEmail">Send Link</button>
+            </div>
+        </div>
+    </div>
+</div>

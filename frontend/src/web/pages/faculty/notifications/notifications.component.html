@@ -1,0 +1,33 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'faculty'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Announcements'" [userName]="user?.name || 'Faculty'"></web-topbar>
+        <main class="page-content animate-fade-in">
+
+            <div class="card p-24">
+                <div class="section-header">
+                    <h3>Recent Announcements</h3>
+                    <i class="bi bi-megaphone section-icon blue-text"></i>
+                </div>
+
+                <div class="notifications-list">
+                    <div *ngFor="let n of notifications" class="notif-item">
+                        <div class="notif-header">
+                            <span class="notif-title">{{ n.title }}</span>
+                            <span class="notif-date">{{ n.createdAt | date:'dd MMM, hh:mm a' }}</span>
+                        </div>
+                        <p class="notif-msg">{{ n.message }}</p>
+                        <div class="notif-tag" *ngIf="n.targetRole">{{ n.targetRole === 'all' ? 'Everyone' :
+                            n.targetRole | titlecase }}</div>
+                    </div>
+
+                    <div *ngIf="notifications.length === 0" class="empty-state">
+                        <i class="bi bi-bell-slash"></i>
+                        <p>No new announcements at this time.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>

@@ -1,0 +1,141 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'authority'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Authority Dashboard'"></web-topbar>
+        <main class="page-content">
+
+            <div class="stats-grid">
+                <div class="stat-card orange" routerLink="/authority/requests">
+                    <div class="stat-icon"><i class="bi bi-cup-hot"></i></div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ summary.pendingMessCuts }}</span>
+                        <span class="stat-label">Pending Mess Cuts</span>
+                    </div>
+                </div>
+                <div class="stat-card purple" routerLink="/authority/requests">
+                    <div class="stat-icon"><i class="bi bi-house-door"></i></div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ summary.pendingHomeGoings }}</span>
+                        <span class="stat-label">Pending Home Leaves</span>
+                    </div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-icon"><i class="bi bi-person-walking"></i></div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ summary.todayOutgoings }}</span>
+                        <span class="stat-label">Today's Outgoings</span>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon"><i class="bi bi-cup-straw"></i></div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ summary.activeMessCuts }}</span>
+                        <span class="stat-label">Active Mess Cuts</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Attendance Marking (Students) -->
+                <div class="card attendance-card mb-24">
+                    <div class="card-header">
+                        <div class="title-group">
+                            <h3>Daily Attendance (Students)</h3>
+                            <p class="subtitle">Mark students present or absent for today</p>
+                        </div>
+                        <div class="header-actions">
+                            <div class="date-picker-group">
+                                <label>Date:</label>
+                                <input type="date" [(ngModel)]="selectedDate" (change)="loadAttendanceForDate()"
+                                    class="date-input" />
+                            </div>
+                            <input type="text" [(ngModel)]="attendanceSearch" (input)="filterAttendanceStudents()"
+                                placeholder="Search Student..." class="search-input" />
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Student Name</th>
+                                    <th>ID</th>
+                                    <th style="text-align: right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let s of filteredAttendanceStudents">
+                                    <td class="room-cell">{{ s.roomNumber }}</td>
+                                    <td>
+                                        <div class="student-cell">
+                                            <div class="avatar">{{ s.name[0] }}</div>
+                                            <span>{{ s.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="id-cell">{{ s.userId }}</td>
+                                    <td style="text-align: right">
+                                        <div class="action-btns">
+                                            <button [class.active]="markedStudents[s._id] === 'present'"
+                                                [class.dimmed]="markedStudents[s._id] === 'absent'"
+                                                class="btn-sm btn-success"
+                                                (click)="markIndividual(s._id, 'present')">Present</button>
+                                            <button [class.active]="markedStudents[s._id] === 'absent'"
+                                                [class.dimmed]="markedStudents[s._id] === 'present'"
+                                                class="btn-sm btn-danger"
+                                                (click)="markIndividual(s._id, 'absent')">Absent</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="filteredAttendanceStudents.length === 0">
+                                    <td colspan="4" class="empty-state">No matching students found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Faculty Attendance (View Only) -->
+                <div class="card attendance-card">
+                    <div class="card-header">
+                        <div class="title-group">
+                            <h3>Faculty Attendance</h3>
+                            <p class="subtitle">Recently marked faculty presence for today</p>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Faculty Name</th>
+                                    <th>ID</th>
+                                    <th style="text-align: right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let f of facultyAttendance">
+                                    <td class="room-cell">{{ f.student?.department || 'N/A' }}</td>
+                                    <td>
+                                        <div class="student-cell">
+                                            <div class="avatar blue">{{ f.student?.name[0] }}</div>
+                                            <span>{{ f.student?.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="id-cell">{{ f.student?.userId }}</td>
+                                    <td style="text-align: right">
+                                        <span [class]="'badge ' + f.status">{{ f.status | titlecase }}</span>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="facultyAttendance.length === 0">
+                                    <td colspan="4" class="empty-state">No faculty attendance recorded today.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>

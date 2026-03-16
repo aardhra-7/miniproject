@@ -44,9 +44,7 @@ exports.markSelfAttendance = async (req, res) => {
     });
 
     if (existing) {
-      existing.status = status;
-      await existing.save();
-      return res.json({ success: true, message: 'Attendance updated', attendance: existing });
+      return res.status(400).json({ success: false, message: 'Attendance already marked for today.' });
     }
 
     const user = await User.findById(req.user._id);

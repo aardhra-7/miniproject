@@ -1,0 +1,93 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'student'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Mark Return'"></web-topbar>
+        <main class="page-content">
+
+            <div class="page-header">
+                <h1>Mark Return</h1>
+                <p>Confirm your arrival back at the hostel using GPS verification.</p>
+            </div>
+
+            <div class="content-grid">
+                <!-- GPS Card -->
+                <div class="card gps-card" [class.located]="located">
+                    <div class="gps-icon">{{ located ? '✅' : ' ' }}</div>
+                    <h3>GPS Verification</h3>
+                    <p>You must be within the specified hostel radius to mark your return.</p>
+
+                    <div class="location-status" *ngIf="located">
+                        <span>Latitude: <strong>{{ lat?.toFixed(6) }}</strong></span>
+                        <span>Longitude: <strong>{{ lng?.toFixed(6) }}</strong></span>
+                    </div>
+
+                    <button class="btn-gps" (click)="getLocation()" [disabled]="locating">
+                        {{ locating ? ' Detecting Location...' : located ? ' Refresh Location' : ' Get My Location' }}
+                    </button>
+                </div>
+
+                <!-- Return Form -->
+                <div class="card">
+                    <h3 class="card-title">Select Active Outing</h3>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <div class="category-toggle">
+                            <button [class.active]="type === 'outgoing'"
+                                (click)="type = 'outgoing'; loadPendingRecords()">Outgoing</button>
+                            <button [class.active]="type === 'homegoing'"
+                                (click)="type = 'homegoing'; loadPendingRecords()">Home Going</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Choose Record *</label>
+                        <select class="form-control" [(ngModel)]="selectedId">
+                            <option value="">-- Select Pending Return --</option>
+                            <option *ngFor="let r of pendingRecords" [value]="r._id">
+                                {{ r.place }} (Left: {{ (r.date || r.leaveDate) | date:'dd MMM, hh:mm a' }})
+                            </option>
+                        </select>
+                        <div *ngIf="pendingRecords.length === 0 && !loading" class="no-records-hint">
+                            No pending {{ type }}s found to return from.
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Return Date</label>
+                            <input type="date" class="form-control" [(ngModel)]="returnDate" />
+                        </div>
+                        <div class="form-group">
+                            <label>Return Time</label>
+                            <input type="time" class="form-control" [(ngModel)]="returnTime" />
+                        </div>
+                    </div>
+
+                    <div *ngIf="msg" [class]="msgType === 'success' ? 'msg-success' : 'msg-error'">{{ msg }}</div>
+
+                    <button class="btn-primary" (click)="markReturn()" [disabled]="!located || !selectedId || loading">
+                        {{ loading ? 'Updating...' : ' Confirm Return' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent History -->
+            <div class="card mt">
+                <h3 class="card-title">Recent Returns</h3>
+                <div *ngIf="returnHistory.length === 0" class="empty-state">No recent returns.</div>
+                <div class="history-list">
+                    <div *ngFor="let h of returnHistory" class="history-item">
+                        <div class="item-main">
+                            <div class="item-title">{{ h.place }}</div>
+                            <div class="item-meta">Checked in: {{ h.returnDate | date:'dd MMM yyyy' }} at {{
+                                h.returnTime }}</div>
+                        </div>
+                        <span class="badge badge-returned">Checked in</span>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>

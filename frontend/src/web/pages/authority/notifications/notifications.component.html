@@ -1,0 +1,57 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'authority'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Publish Notifications'"></web-topbar>
+        <main class="page-content">
+
+            <div class="publish-container">
+                <div class="card publish-card">
+                    <div class="card-header">
+                        <h2> Create New Announcement</h2>
+                        <p>Send notifications to specific roles or all hostel members.</p>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label>Notification Title</label>
+                            <input type="text" [(ngModel)]="notification.title" placeholder="e.g. Mess Timing Update" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Target Audience</label>
+                            <select [(ngModel)]="notification.targetRole">
+                                <option value="all">Everyone</option>
+                                <option value="student">All Students</option>
+                                <option value="faculty">All Faculty</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select [(ngModel)]="notification.type">
+                                <option value="general">General Info</option>
+                                <option value="alert">Alert / Urgent</option>
+                                <option value="attendance">Attendance Related</option>
+                                <option value="request">Request Status</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full">
+                            <label>Message Content</label>
+                            <textarea [(ngModel)]="notification.message" rows="5"
+                                placeholder="Type your announcement here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button class="btn-primary" (click)="publish()"
+                            [disabled]="publishing || !notification.title || !notification.message">
+                            {{ publishing ? 'Publishing...' : ' Publish Announcement' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>

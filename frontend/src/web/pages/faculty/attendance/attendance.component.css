@@ -1,0 +1,121 @@
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.section-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.section-icon {
+    font-size: 24px;
+    opacity: 0.5;
+}
+
+.green-text {
+    color: #10b981;
+}
+
+.blue-text {
+    color: #3b82f6;
+}
+
+.attendance-status-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    gap: 24px;
+}
+
+.attendance-status-box.marked {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.status-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 16px;
+}
+
+.marked .status-info {
+    color: #166534;
+}
+
+.marked .status-info i {
+    color: #10b981;
+    font-size: 24px;
+}
+
+.attendance-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 16px 12px;
+    border-bottom: 2px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+.history-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.status-badge.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.status-badge.absent {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+@media (max-width: 768px) {
+    .attendance-status-box {
+        flex-direction: column;
+        gap: 24px;
+        text-align: center;
+        padding: 24px;
+    }
+
+    .attendance-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .attendance-actions .primary-btn {
+        width: 100%;
+    }
+}

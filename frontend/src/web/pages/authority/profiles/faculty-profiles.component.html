@@ -1,0 +1,62 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'authority'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Faculty Profiles'"></web-topbar>
+        <main class="page-content">
+
+            <div class="page-header">
+                <div class="header-text">
+                    <h1>Staff & Faculty Directory</h1>
+                    <p>Quick access to faculty contact details and departments.</p>
+                </div>
+                <div class="search-box">
+                    <input type="text" [(ngModel)]="search" (input)="filter()"
+                        placeholder="Search by name, department or ID..." />
+                </div>
+            </div>
+
+            <div class="card p-0 overflow-hidden">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Faculty Name</th>
+                                <th>Department</th>
+                                <th>Designation</th>
+                                <th>Room No</th>
+                                <th>User ID</th>
+                                <th>Contact</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let f of filteredFaculty">
+                                <td>
+                                    <div class="faculty-cell">
+                                        <div class="avatar staff">{{ f.name[0] }}</div>
+                                        <div class="name-info">
+                                            <span class="name">{{ f.name }}</span>
+                                            <span class="email">{{ f.email }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge dept">{{ f.department || 'General' }}</span></td>
+                                <td>{{ f.designation || 'Faculty' }}</td>
+                                <td class="room-cell">{{ f.roomNumber || '—' }}</td>
+                                <td class="id-cell">#{{ f.userId }}</td>
+                                <td>
+                                    <div class="contact-info">
+                                        <strong>{{ f.phone }}</strong>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr *ngIf="filteredFaculty.length === 0">
+                                <td colspan="6" class="empty-state">No matching faculty found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>

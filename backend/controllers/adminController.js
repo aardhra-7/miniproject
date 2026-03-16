@@ -12,9 +12,16 @@ exports.getDashboardStats = async (req, res) => {
     // 1. Today's Activities
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(startOfToday);
+    endOfToday.setDate(endOfToday.getDate() + 1);
 
-    const todayOutgoings = await Outgoing.countDocuments({ createdAt: { $gte: startOfToday } });
-    const todayHomeGoings = await HomeGoing.countDocuments({ createdAt: { $gte: startOfToday } });
+    const todayOutgoings = await Outgoing.countDocuments({ createdAt: { $gte: startOfToday, $lt: endOfToday } });
+    const todayHomeGoings = await HomeGoing.countDocuments({ createdAt: { $gte: startOfToday, $lt: endOfToday } });
+    const todayReturns = await Outgoing.countDocuments({
+      status: 'returned',
+      updatedAt: { $gte: startOfToday, $lt: endOfToday }
+    });
+
     const activeMessCuts = await MessCut.countDocuments({
       startDate: { $lte: new Date() },
       endDate: { $gte: new Date() },
@@ -24,13 +31,22 @@ exports.getDashboardStats = async (req, res) => {
     // 2. Pending Requests Summary
     const pendingMessCuts = await MessCut.countDocuments({ status: 'pending' });
     const pendingHomeGoings = await HomeGoing.countDocuments({ status: 'pending' });
+
+    // Weekly Pending (Requests from the last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const weeklyPending = await Promise.all([
+      MessCut.countDocuments({ status: 'pending', createdAt: { $gte: sevenDaysAgo } }),
+      HomeGoing.countDocuments({ status: 'pending', createdAt: { $gte: sevenDaysAgo } })
+    ]).then(counts => counts.reduce((a, b) => a + b, 0));
+
     const totalPending = pendingMessCuts + pendingHomeGoings;
 
     res.json({
       success: true,
       stats: {
-        today: { todayOutgoings, todayHomeGoings, activeMessCuts },
-        pending: { pendingMessCuts, pendingHomeGoings, totalPending }
+        today: { todayOutgoings, todayHomeGoings, todayReturns, activeMessCuts },
+        pending: { pendingMessCuts, pendingHomeGoings, totalPending, weeklyPending }
       }
     });
   } catch (error) {

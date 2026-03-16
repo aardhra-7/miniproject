@@ -1,0 +1,107 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'authority'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Student Profiles'"></web-topbar>
+        <main class="page-content">
+
+            <div class="page-header">
+                <div class="header-text">
+                    <h1>Graduated / Current Students</h1>
+                    <p>Search and view detailed student records.</p>
+                </div>
+                <div class="search-box">
+                    <input type="text" [(ngModel)]="search" (input)="filter()"
+                        placeholder="Search by name, ID or room..." />
+                </div>
+            </div>
+
+            <div class="card p-0 overflow-hidden">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Room</th>
+                                <th>User ID</th>
+                                <th>College</th>
+                                <th>Semester</th>
+                                <th>Contact</th>
+                                <th style="text-align: right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let s of filteredStudents">
+                                <td>
+                                    <div class="student-cell">
+                                        <div class="avatar">{{ s.name[0] }}</div>
+                                        <div class="name-info">
+                                            <span class="name">{{ s.name }}</span>
+                                            <span class="email">{{ s.email }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="room-cell">{{ s.roomNumber }}</td>
+                                <td class="id-cell">{{ s.userId }}</td>
+                                <td>{{ s.collegeName || '—' }}</td>
+                                <td>S{{ s.semester || '—' }}</td>
+                                <td>
+                                    <div class="contact-info">
+                                        <span>{{ s.phone }}</span>
+                                    </div>
+                                </td>
+                                <td style="text-align: right">
+                                    <button class="btn-detail-sm" (click)="selectedStudent = s">View Details</button>
+                                </td>
+                            </tr>
+                            <tr *ngIf="filteredStudents.length === 0">
+                                <td colspan="7" class="empty-state">No matching students found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Modal (Overlay) -->
+            <div class="modal-overlay" *ngIf="selectedStudent" (click)="selectedStudent = null">
+                <div class="modal" (click)="$event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3>Student Details</h3>
+                        <button class="close" (click)="selectedStudent = null">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="grid">
+                            <div><label>Full Name</label>
+                                <p>{{ selectedStudent.name }}</p>
+                            </div>
+                            <div><label>User ID</label>
+                                <p>{{ selectedStudent.userId }}</p>
+                            </div>
+                            <div><label>Admission No</label>
+                                <p>{{ selectedStudent.admissionNo }}</p>
+                            </div>
+                            <div><label>Hostel</label>
+                                <p>{{ selectedStudent.hostelName }}</p>
+                            </div>
+                            <div><label>Room Number</label>
+                                <p>{{ selectedStudent.roomNumber }}</p>
+                            </div>
+                            <div><label>Semester</label>
+                                <p>{{ selectedStudent.semester }}</p>
+                            </div>
+                            <div><label>Guardian</label>
+                                <p>{{ selectedStudent.guardiansName }}</p>
+                            </div>
+                            <div><label>Guardian Phone</label>
+                                <p>{{ selectedStudent.guardiansPhone }}</p>
+                            </div>
+                            <div class="full"><label>Address</label>
+                                <p>{{ selectedStudent.address }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>

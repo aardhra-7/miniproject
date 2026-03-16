@@ -51,14 +51,15 @@ exports.updateProfile = async (req, res) => {
 // Mark outgoing 
 exports.markOutgoing = async (req, res) => {
   try {
-    const { date, timeLeaving, place } = req.body;
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
     const outgoing = new Outgoing({
       student: req.user._id,
       studentName: req.user.name,
       roomNumber: req.user.roomNumber,
-      date: new Date(date),
-      timeLeaving,
+      date: date ? new Date(date) : now,
+      timeLeaving: timeLeaving || currentTime,
       place,
       status: 'active'
     });
@@ -119,14 +120,16 @@ exports.markHomeGoing = async (req, res) => {
 // Mark return
 exports.markReturn = async (req, res) => {
   try {
-    const { type, requestId, latitude, longitude, returnDate, returnTime } = req.body;
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0];
+    const currentTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
     // Get hostel settings 
     const settings = await HostelSettings.findOne({ hostelName: req.user.hostelName });
 
-    // Fallback 
-    const HOSTEL_LAT = settings?.locationCoordinates?.lat || parseFloat(process.env.HOSTEL_LAT || '9.4265');
-    const HOSTEL_LON = settings?.locationCoordinates?.lng || parseFloat(process.env.HOSTEL_LON || '76.9246');
+    // Precise coordinate retrieval
+    const HOSTEL_LAT = settings?.locationCoordinates?.latitude !== undefined ? settings.locationCoordinates.latitude : parseFloat(process.env.HOSTEL_LAT || '9.4265');
+    const HOSTEL_LON = settings?.locationCoordinates?.longitude !== undefined ? settings.locationCoordinates.longitude : parseFloat(process.env.HOSTEL_LON || '76.9246');
     const ALLOWED_RADIUS = settings?.returnRadius || 200;
 
     const distance = calculateDistance(latitude, longitude, HOSTEL_LAT, HOSTEL_LON);
@@ -135,15 +138,15 @@ exports.markReturn = async (req, res) => {
     if (!isWithinPremises) {
       return res.status(400).json({
         success: false,
-        message: `Geofence Violation: You are ${distance.toFixed(0)}m away. Required within ${ALLOWED_RADIUS}m of hostel.`
+        message: `Geofence Violation: You are ${distance.toFixed(0)}m away. Required within ${ALLOWED_RADIUS}m of hostel. (Configured Hostel Location: ${HOSTEL_LAT}, ${HOSTEL_LON})`
       });
     }
 
     let record;
     if (type === 'outgoing') {
       record = await Outgoing.findByIdAndUpdate(requestId, {
-        returnTime: returnTime,
-        returnDate: new Date(returnDate),
+        returnTime: returnTime || currentTime,
+        returnDate: returnDate ? new Date(returnDate) : now,
         gpsLocation: { lat: latitude, lng: longitude },
         status: 'returned',
         isReturned: true,
@@ -151,8 +154,8 @@ exports.markReturn = async (req, res) => {
       }, { new: true });
     } else {
       record = await HomeGoing.findByIdAndUpdate(requestId, {
-        returnDate: new Date(returnDate),
-        returnTime: returnTime,
+        returnDate: returnDate ? new Date(returnDate) : now,
+        returnTime: returnTime || currentTime,
         status: 'returned',
         isReturned: true
       }, { new: true });

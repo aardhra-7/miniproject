@@ -125,19 +125,53 @@ exports.forgotPassword = async (req, res) => {
     // Create reset password url
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    const message = `
-      <h1>Password Reset Request</h1>
-      <p>Please click on the link below to reset your password:</p>
-      <a href="${resetUrl}" clicktracking=off>${resetUrl}</a>
-      <p>This link will expire in 30 minutes.</p>
+    const roleName = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    const subject = 'StaySphere Password Reset Request';
+    const message = `Hello,
+
+We received a request to reset the password for your StaySphere ${user.role} account.
+
+To create a new password, please click the link below:
+
+${resetUrl}
+
+For security reasons, this link will expire in 30 minutes.
+
+If you did not request a password reset, you can safely ignore this email. Your account will remain unchanged.
+
+Thank you,
+StaySphere Support Team`;
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px;">
+        <h2 style="color: #7C3AED; border-bottom: 2px solid #7C3AED; padding-bottom: 10px;">StaySphere Password Reset</h2>
+        <p>Hello,</p>
+        <p>We received a request to reset the password for your <strong>StaySphere ${user.role}</strong> account.</p>
+        <p>To create a new password, please click the button below:</p>
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="background-color: #7C3AED; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
+        </p>
+        <p>Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #666;">${resetUrl}</p>
+        <p style="margin-top: 25px; font-size: 0.9em; color: #555;">
+          For security reasons, this link will expire in <strong>30 minutes</strong>.
+        </p>
+        <p style="font-size: 0.9em; color: #555;">
+          If you did not request a password reset, you can safely ignore this email. Your account will remain unchanged.
+        </p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #888;">
+          <p>Thank you,<br><strong>StaySphere Support Team</strong></p>
+        </div>
+      </div>
     `;
 
     try {
       const sendEmail = require('../utils/sendEmail');
       await sendEmail({
         email: user.email,
-        subject: 'StaySphere - Password Reset',
-        html: message
+        subject: subject,
+        message: message,
+        html: html
       });
 
       res.json({

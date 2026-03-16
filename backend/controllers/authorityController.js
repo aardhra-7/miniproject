@@ -176,7 +176,7 @@ exports.getReports = async (req, res) => {
 
     const attendance = await Attendance.find({
       date: { $gte: startDate, $lte: endDate }
-    }).populate('student', 'name roomNumber').sort({ date: 1, roomNumber: 1 });
+    }).populate('student', 'name roomNumber department userId').sort({ date: 1, roomNumber: 1 });
 
     res.json({ success: true, attendance });
   } catch (error) {

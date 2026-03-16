@@ -1,0 +1,110 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
+import { TopbarComponent } from '../../../components/topbar/topbar.component';
+import { AuthService } from '../../../services/auth.service';
+
+@Component({
+  selector: 'web-home-going',
+  standalone: true,
+  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
+  templateUrl: './home-going.component.html',
+  styleUrls: ['./home-going.component.css']
+})
+export class HomeGoingComponent implements OnInit {
+  activeTab = 'request';
+
+  // Request Form
+  leaveDate = '';
+  time = '';
+  place = '';
+  reason = '';
+
+  // Mark Form
+  markDate = new Date().toISOString().split('T')[0];
+  markTime = '';
+  markPlace = '';
+
+  loading = false;
+  msg = '';
+  msgType = '';
+  records: any[] = [];
+
+  constructor(private http: HttpClient, private auth: AuthService) { }
+
+  ngOnInit() {
+    this.loadRecords();
+  }
+
+  get headers() {
+    return { headers: new HttpHeaders({ Authorization: `Bearer ${this.auth.userValue?.token}` }) };
+  }
+
+  loadRecords() {
+    this.http.get<any>('http://localhost:5000/api/student/home-going', this.headers).subscribe({
+      next: res => this.records = res.homeGoings || [],
+      error: () => { }
+    });
+  }
+
+  submitRequest() {
+    if (!this.leaveDate || !this.place) return;
+    this.loading = true;
+    this.msg = '';
+
+    this.http.post('http://localhost:5000/api/student/home-going/request', {
+      leaveDate: this.leaveDate,
+      time: this.time,
+      place: this.place,
+      reason: this.reason
+    }, this.headers).subscribe({
+      next: (res: any) => {
+        this.msg = res.message || 'Request submitted!';
+        this.msgType = 'success';
+        this.loading = false;
+        this.clearForms();
+        this.loadRecords();
+      },
+      error: err => {
+        this.msg = err.error?.message || 'Failed.';
+        this.msgType = 'error';
+        this.loading = false;
+      }
+    });
+  }
+
+  submitMarking() {
+    if (!this.markDate || !this.markPlace) return;
+    this.loading = true;
+    this.msg = '';
+
+    this.http.post('http://localhost:5000/api/student/home-going/mark', {
+      leaveDate: this.markDate,
+      time: this.markTime,
+      place: this.markPlace
+    }, this.headers).subscribe({
+      next: (res: any) => {
+        this.msg = res.message || 'Home-going marked!';
+        this.msgType = 'success';
+        this.loading = false;
+        this.clearForms();
+        this.loadRecords();
+      },
+      error: err => {
+        this.msg = err.error?.message || 'Failed.';
+        this.msgType = 'error';
+        this.loading = false;
+      }
+    });
+  }
+
+  clearForms() {
+    this.leaveDate = '';
+    this.time = '';
+    this.place = '';
+    this.reason = '';
+    this.markPlace = '';
+  }
+}

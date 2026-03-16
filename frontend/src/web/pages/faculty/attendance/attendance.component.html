@@ -1,0 +1,70 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'faculty'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Faculty Attendance'" [userName]="user?.name || 'Faculty'"></web-topbar>
+        <main class="page-content animate-fade-in">
+
+            <div class="card p-24 mb-24">
+                <div class="section-header">
+                    <div class="title-group">
+                        <h3>Daily Attendance</h3>
+                        <p class="text-muted">Mark your presence for today ({{ today | date:'dd MMM yyyy' }})</p>
+                    </div>
+                    <i class="bi bi-check2-circle section-icon green-text"></i>
+                </div>
+
+                <div class="attendance-status-box" [class.marked]="hasMarkedToday">
+                    <div class="status-info">
+                        <i class="bi" [class.bi-check-circle-fill]="hasMarkedToday"
+                            [class.bi-clock-history]="!hasMarkedToday"></i>
+                        <span>{{ hasMarkedToday ? 'Attendance Recorded' : 'Mark your Attendance' }}</span>
+                    </div>
+                    <div class="attendance-actions">
+                        <button class="primary-btn btn-success" [disabled]="hasMarkedToday"
+                            (click)="markAttendance('present')">
+                            <i class="bi bi-person-check"></i> Present
+                        </button>
+                        <button class="primary-btn btn-danger" [disabled]="hasMarkedToday"
+                            (click)="markAttendance('absent')">
+                            <i class="bi bi-person-x"></i> Leave
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance History Card -->
+            <div class="card p-24">
+                <div class="section-header">
+                    <h3>Attendance History</h3>
+                    <i class="bi bi-clock-history section-icon blue-text"></i>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of attendanceHistory">
+                                <td>{{ item.date | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                    <span class="status-badge" [class.success]="item.status === 'present'"
+                                        [class.absent]="item.status === 'absent'">
+                                        {{ item.status | titlecase }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr *ngIf="attendanceHistory.length === 0">
+                                <td colspan="2" class="empty-td text-center">No history found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>

@@ -1,0 +1,106 @@
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <div class="sidebar-logo-text">Stay<span>Sphere</span></div>
+        <div class="sidebar-logo-sub"> Hostel Management System </div>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="user-avatar">
+            <i class="bi bi-person-circle"></i>
+        </div>
+        <div class="user-info">
+            <div class="sidebar-user-name">{{ userName }}</div>
+            <div class="sidebar-user-role">{{ role | titlecase }}</div>
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/dashboard']">
+            <i class="bi bi-house-door-fill"></i> Dashboard
+        </a>
+
+        <!-- Student  -->
+        <ng-container *ngIf="role === 'student'">
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/profile']">
+                <i class="bi bi-person-badge-fill"></i> My Profile
+            </a>
+
+            <div class="nav-section-label">Tracking</div>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/attendance']">
+                <i class="bi bi-calendar-check-fill"></i> Attendance
+            </a>
+
+            <div class="nav-section-label">Forms</div>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/mess-cut']">
+                <i class="bi bi-cup-hot-fill"></i> Mess Cut
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/outgoing']">
+                <i class="bi bi-door-open-fill"></i> Outgoing
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/home-going']">
+                <i class="bi bi-house-up-fill"></i> Home Going
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/return']">
+                <i class="bi bi-geo-alt-fill"></i> Mark Return
+            </a>
+
+            <div class="nav-section-label">Other</div>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/' + role + '/notifications']">
+                <i class="bi bi-bell-fill"></i> Notifications
+            </a>
+        </ng-container>
+
+        <!-- Admin -->
+        <ng-container *ngIf="role === 'admin'">
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/admin/users']">
+                <i class="bi bi-people-fill"></i> User Management
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/admin/notifications']">
+                <i class="bi bi-megaphone-fill"></i> Notifications
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/admin/security']">
+                <i class="bi bi-shield-lock-fill"></i> Security
+            </a>
+        </ng-container>
+
+        <!-- Authority -->
+        <ng-container *ngIf="role === 'authority'">
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/authority/requests']">
+                <i class="bi bi-check2-circle"></i> Approvals
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/authority/notifications']">
+                <i class="bi bi-send-fill"></i> Announcements
+            </a>
+            <div class="nav-section-label">Directories</div>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/authority/student-profiles']">
+                <i class="bi bi-mortarboard-fill"></i> Students
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/authority/faculty-profiles']">
+                <i class="bi bi-briefcase-fill"></i> Faculty
+            </a>
+        </ng-container>
+
+        <!-- Faculty -->
+        <ng-container *ngIf="role === 'faculty'">
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/faculty/attendance']">
+                <i class="bi bi-calendar2-check-fill"></i> Attendance
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/faculty/mess-cut']">
+                <i class="bi bi-cup-straw"></i> Mess Cut
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/faculty/home-going']">
+                <i class="bi bi-houses-fill"></i> Home Going
+            </a>
+            <a class="nav-item" routerLinkActive="active" [routerLink]="['/faculty/notifications']">
+                <i class="bi bi-bell-fill"></i> Notifications
+            </a>
+        </ng-container>
+    </div>
+
+    <div class="sidebar-footer">
+        <button class="btn-logout" (click)="logout()">
+            <i class="bi bi-box-arrow-right"></i> Sign Out
+        </button>
+    </div>
+</nav>

@@ -1,0 +1,117 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'faculty'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Faculty Dashboard'" [userName]="user?.name || 'Faculty'"></web-topbar>
+        <main class="page-content animate-fade-in">
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ stats.attendanceCount }}</span>
+                        <span class="stat-label"> Total Present Days </span>
+                    </div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon"><i class="bi bi-cup-hot-fill"></i></div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ stats.messCutCount }}</span>
+                        <span class="stat-label">Mess Cuts</span>
+                    </div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon"><i class="bi bi-house-door-fill"></i></div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ stats.homeGoingCount }}</span>
+                        <span class="stat-label">Home Goings</span>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon"><i class="bi bi-bell-fill"></i></div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ notifications.length }}</span>
+                        <span class="stat-label"> Notifications</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="main-column">
+                    <!-- Quick Actions Section -->
+                    <h3 class="mb-20">Quick Actions</h3>
+                    <div class="actions-grid">
+                        <div class="action-card" [routerLink]="['/faculty/attendance']">
+                            <div class="action-icon green"><i class="bi bi-person-check-fill"></i></div>
+                            <div class="action-info">
+                                <h4>Attendance Marking </h4>
+
+                            </div>
+                        </div>
+
+                        <div class="action-card" [routerLink]="['/faculty/mess-cut']">
+                            <div class="action-icon orange"><i class="bi bi-cup-straw"></i></div>
+                            <div class="action-info">
+                                <h4>Mess Cut Request</h4>
+                            </div>
+                        </div>
+
+                        <div class="action-card" [routerLink]="['/faculty/home-going']">
+                            <div class="action-icon purple"><i class="bi bi-house-door-fill"></i></div>
+                            <div class="action-info">
+                                <h4>Home Going Marking</h4>
+                            </div>
+                        </div>
+
+                        <div class="action-card" [routerLink]="['/faculty/notifications']">
+                            <div class="action-icon blue"><i class="bi bi-megaphone-fill"></i></div>
+                            <div class="action-info">
+                                <h4>Notifications</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Announcements Mini-Card -->
+                    <div class="card p-24 mt-48">
+                        <div class="section-header">
+                            <h3> Latest Notifications </h3>
+                            <a [routerLink]="['/faculty/notifications']" class="view-all">View All</a>
+                        </div>
+                        <div *ngIf="notifications.length > 0; else noNotif" class="latest-notif">
+                            <div class="notif-title">{{ notifications[0].title }}</div>
+                            <p>{{ notifications[0].message }}</p>
+                            <span class="notif-date">{{ notifications[0].createdAt | date:'short' }}</span>
+                        </div>
+                        <ng-template #noNotif>
+                            <p class="text-muted">No notifications yet.</p>
+                        </ng-template>
+                    </div>
+                </div>
+
+                <div class="side-column">
+                    <div class="card p-24 profile-card">
+                        <div class="profile-header">
+                            <div class="large-avatar">{{ user?.name?.substring(0,1) }}</div>
+                            <h4>{{ user?.name }}</h4>
+                            <span class="badge staff">{{ user?.department || 'Faculty' }}</span>
+                        </div>
+                        <div class="profile-details">
+                            <div class="p-item">
+                                <span class="p-label">User ID</span>
+                                <span class="p-value">{{ user?.userId }}</span>
+                            </div>
+                            <div class="p-item">
+                                <span class="p-label">Phone</span>
+                                <span class="p-value">{{ user?.phone || 'N/A' }}</span>
+                            </div>
+                            <div class="p-item">
+                                <span class="p-label">Room</span>
+                                <span class="p-value">{{ user?.roomNumber || 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>

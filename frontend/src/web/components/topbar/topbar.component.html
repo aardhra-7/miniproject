@@ -1,0 +1,45 @@
+<header class="topbar">
+    <div class="topbar-left">
+        <button class="secondary-btn btn-back" (click)="goBack()">
+            <i class="bi bi-chevron-left"></i> <span>Back</span>
+        </button>
+        <div class="topbar-title">{{ pageTitle }}</div>
+    </div>
+
+    <div class="topbar-actions">
+        <div class="notif-wrapper">
+            <button class="icon-btn" (click)="toggleNotifications()" [class.has-notif]="latestNotification">
+                <i class="bi bi-bell"></i>
+                <span class="notif-dot" *ngIf="latestNotification"></span>
+            </button>
+
+            <div class="notif-dropdown animate-fade-in" *ngIf="showNotifications" (click)="$event.stopPropagation()">
+                <div class="notif-header">
+                    <span>Recent Notification</span>
+                    <i class="bi bi-x-lg close-notif" (click)="showNotifications = false"></i>
+                </div>
+                <div class="notif-body" *ngIf="latestNotification">
+                    <div class="notif-item">
+                        <div class="notif-title">{{ latestNotification.title }}</div>
+                        <div class="notif-msg">{{ latestNotification.message }}</div>
+                        <div class="notif-time">
+                            <i class="bi bi-clock-history"></i> {{ latestNotification.createdAt | date:'shortTime' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="notif-empty" *ngIf="!latestNotification">
+                    <i class="bi bi-bell-slash"></i>
+                    <p>All caught up!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="user-profile-chip">
+            <div class="user-details">
+                <span class="u-name">{{ userName }}</span>
+                <span class="u-role">{{ auth.userValue?.role | titlecase }}</span>
+            </div>
+            <div class="u-avatar">{{ userInitials }}</div>
+        </div>
+    </div>
+</header>

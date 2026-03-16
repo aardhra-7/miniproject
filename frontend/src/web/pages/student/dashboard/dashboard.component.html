@@ -1,0 +1,101 @@
+<div class="dashboard-layout">
+    <web-sidebar [role]="'student'"></web-sidebar>
+    <div class="main-content">
+        <web-topbar [pageTitle]="'Student Dashboard'"></web-topbar>
+        <main class="page-content">
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="bi bi-bar-chart-fill"></i></div>
+                    <div>
+                        <div class="stat-value">{{ attendancePercent }}%</div>
+                        <div class="stat-label">Attendance</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="bi bi-cup-hot-fill"></i></div>
+                    <div>
+                        <div class="stat-value">{{ messCutDays }}</div>
+                        <div class="stat-label">Mess Cut Days</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="bi bi-person-walking"></i></div>
+                    <div>
+                        <div class="stat-value">{{ activeOutgoings }}</div>
+                        <div class="stat-label">Active Outgoings</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="bi bi-house-door-fill"></i></div>
+                    <div>
+                        <div class="stat-value">{{ pendingHomeGoings }}</div>
+                        <div class="stat-label">Pending Home Leaves</div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="module-grid">
+
+                    <div class="module-card" [routerLink]="['/student/outgoing']">
+                        <div class="module-header">
+                            <div class="module-icon blue-bg"><i class="bi bi-door-open-fill"></i></div>
+                            <div class="module-title">Mark Outgoing</div>
+                        </div>
+                        <p class="module-desc">Going out for a while? Mark your departure time and destination here.</p>
+                        <div class="module-footer"><span class="module-action">Mark Now →</span></div>
+                    </div>
+
+                    <div class="module-card" [routerLink]="['/student/home-going']">
+                        <div class="module-header">
+                            <div class="module-icon purple-bg"><i class="bi bi-house-door-fill"></i></div>
+                            <div class="module-title">Home Going</div>
+                        </div>
+                        <p class="module-desc">Request permission for home visits or record your departure.</p>
+                        <div class="module-footer"><span class="module-action">Go to Page →</span></div>
+                    </div>
+
+                    <div class="module-card" [routerLink]="['/student/mess-cut']">
+                        <div class="module-header">
+                            <div class="module-icon orange-bg"><i class="bi bi-cup-hot-fill"></i></div>
+                            <div class="module-title">Mess Cut</div>
+                        </div>
+                        <p class="module-desc">Apply for mess cut for upcoming dates to save on mess bills.</p>
+                        <div class="module-footer"><span class="module-action">Apply Now →</span></div>
+                    </div>
+
+                    <div class="module-card" [routerLink]="['/student/return']">
+                        <div class="module-header">
+                            <div class="module-icon green-bg"><i class="bi bi-geo-alt-fill"></i></div>
+                            <div class="module-title">Mark Return</div>
+                        </div>
+                        <p class="module-desc">Arrived back at hostel? Use GPS to confirm your return.</p>
+                        <div class="module-footer"><span class="module-action">Mark Return →</span></div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section class="notifications-section mt">
+                <div class="section-header">
+                    <h2>Recent Notifications</h2>
+                    <a class="view-all" [routerLink]="['/student/notifications']">View All</a>
+                </div>
+                <div class="card notif-card">
+                    <div *ngIf="notifications.length === 0" class="empty-state">No new notifications</div>
+                    <div *ngFor="let n of notifications.slice(0,3)" class="notif-item">
+                        <div class="notif-bullet"></div>
+                        <div class="notif-body">
+                            <h6>{{ n.title }}</h6>
+                            <p>{{ n.message }}</p>
+                            <span class="notif-time">{{ n.createdAt | date:'shortTime' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>

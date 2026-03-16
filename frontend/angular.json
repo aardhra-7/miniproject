@@ -19,7 +19,7 @@
             },
             "root": "",
             "sourceRoot": "src",
-            "prefix": "app",
+            "prefix": "web",
             "architect": {
                 "build": {
                     "builder": "@angular-devkit/build-angular:browser",
@@ -45,12 +45,12 @@
                             "budgets": [
                                 {
                                     "type": "initial",
-                                    "recognized": "1mb",
+                                    "maximumWarning": "1mb",
                                     "maximumError": "2mb"
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "recognized": "2kb",
+                                    "maximumWarning": "2kb",
                                     "maximumError": "4kb"
                                 }
                             ],
@@ -107,6 +107,6 @@
         }
     },
     "cli": {
-      "analytics": false
+        "analytics": false
     }
 }

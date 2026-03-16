@@ -17,7 +17,7 @@ const homeGoingSchema = new mongoose.Schema({
   reason: String,
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'active', 'returned'],
+    enum: ['pending', 'approved', 'rejected', 'active', 'returned', 'marked'],
     default: 'pending'
   },
   isReturned: {
