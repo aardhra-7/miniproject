@@ -48,9 +48,10 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Mark outgoing 
 exports.markOutgoing = async (req, res) => {
   try {
+    const { date, timeLeaving, place } = req.body;
+
     const now = new Date();
     const currentTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
@@ -66,11 +67,11 @@ exports.markOutgoing = async (req, res) => {
 
     await outgoing.save();
     res.json({ success: true, message: 'Outgoing marked successfully', outgoing });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 // Request home going 
 exports.requestHomeGoing = async (req, res) => {
   try {
@@ -120,51 +121,86 @@ exports.markHomeGoing = async (req, res) => {
 // Mark return
 exports.markReturn = async (req, res) => {
   try {
+    
+    const { type, requestId, latitude, longitude, returnDate, returnTime } = req.body;
+
     const now = new Date();
     const currentDate = now.toISOString().split('T')[0];
     const currentTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
+    // Debug
+    console.log('BODY:', req.body);
+
     // Get hostel settings 
     const settings = await HostelSettings.findOne({ hostelName: req.user.hostelName });
 
-    // Precise coordinate retrieval
-    const HOSTEL_LAT = settings?.locationCoordinates?.latitude !== undefined ? settings.locationCoordinates.latitude : parseFloat(process.env.HOSTEL_LAT || '9.4265');
-    const HOSTEL_LON = settings?.locationCoordinates?.longitude !== undefined ? settings.locationCoordinates.longitude : parseFloat(process.env.HOSTEL_LON || '76.9246');
+    const HOSTEL_LAT = settings?.locationCoordinates?.latitude !== undefined
+      ? settings.locationCoordinates.latitude
+      : parseFloat(process.env.HOSTEL_LAT || '9.4265');
+
+    const HOSTEL_LON = settings?.locationCoordinates?.longitude !== undefined
+      ? settings.locationCoordinates.longitude
+      : parseFloat(process.env.HOSTEL_LON || '76.9246');
+
     const ALLOWED_RADIUS = settings?.returnRadius || 200;
 
-    const distance = calculateDistance(latitude, longitude, HOSTEL_LAT, HOSTEL_LON);
+    const latNum = parseFloat(latitude);
+const lonNum = parseFloat(longitude);
+
+if (isNaN(latNum) || isNaN(lonNum)) {
+  return res.status(400).json({ message: 'Invalid GPS coordinates' });
+}
+
+console.log("USER:", latNum, lonNum);
+console.log("HOSTEL:", HOSTEL_LAT, HOSTEL_LON);
+
+const distance = calculateDistance(latNum, lonNum, HOSTEL_LAT, HOSTEL_LON);
+console.log("DISTANCE:", distance);
     const isWithinPremises = distance <= ALLOWED_RADIUS;
 
     if (!isWithinPremises) {
       return res.status(400).json({
         success: false,
-        message: `Geofence Violation: You are ${distance.toFixed(0)}m away. Required within ${ALLOWED_RADIUS}m of hostel. (Configured Hostel Location: ${HOSTEL_LAT}, ${HOSTEL_LON})`
+        message: `Geofence Violation: You are ${distance.toFixed(0)}m away. Required within ${ALLOWED_RADIUS}m`
       });
     }
 
     let record;
+
     if (type === 'outgoing') {
-      record = await Outgoing.findByIdAndUpdate(requestId, {
-        returnTime: returnTime || currentTime,
-        returnDate: returnDate ? new Date(returnDate) : now,
-        gpsLocation: { lat: latitude, lng: longitude },
-        status: 'returned',
-        isReturned: true,
-        isGpsVerified: true
-      }, { new: true });
+      record = await Outgoing.findByIdAndUpdate(
+        requestId,
+        {
+          returnTime: returnTime || currentTime,
+          returnDate: returnDate ? new Date(returnDate) : now,
+          gpsLocation: { lat: latitude, lng: longitude },
+          status: 'returned',
+          isReturned: true,
+          isGpsVerified: true
+        },
+        { new: true }
+      );
     } else {
-      record = await HomeGoing.findByIdAndUpdate(requestId, {
-        returnDate: returnDate ? new Date(returnDate) : now,
-        returnTime: returnTime || currentTime,
-        status: 'returned',
-        isReturned: true
-      }, { new: true });
+      record = await HomeGoing.findByIdAndUpdate(
+        requestId,
+        {
+          returnDate: returnDate ? new Date(returnDate) : now,
+          returnTime: returnTime || currentTime,
+          status: 'returned',
+          isReturned: true
+        },
+        { new: true }
+      );
     }
 
-    if (!record) return res.status(404).json({ message: 'Record not found' });
+    if (!record) {
+      return res.status(404).json({ message: 'Record not found' });
+    }
 
     res.json({ success: true, message: 'Return marked successfully. Welcome back!', record });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
