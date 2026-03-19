@@ -50,7 +50,31 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- History Section -->
+                <div class="card history-card mt-24">
+                    <div class="card-header">
+                        <h3>Past Notifications</h3>
+                    </div>
+                    <div *ngIf="notifications.length === 0" class="empty-state">No past notifications.</div>
+                    <div class="notif-list">
+                        <div *ngFor="let n of notifications" class="notif-item">
+                            <div class="notif-info">
+                                <div class="notif-meta">
+                                    <span [class]="'badge type-' + n.type">{{ n.type | titlecase }}</span>
+                                    <span class="date">{{ n.createdAt | date:'short' }}</span>
+                                </div>
+                                <h4>{{ n.title }}</h4>
+                                <p>{{ n.message }}</p>
+                            </div>
+                            <button class="btn-delete" (click)="deleteNotification(n._id)" title="Delete Notification">
+                                <i class="bi bi-trash3"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
+
 
         </main>
     </div>

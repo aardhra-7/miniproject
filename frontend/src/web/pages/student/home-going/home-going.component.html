@@ -23,7 +23,7 @@
                         <p class="section-desc">Submit this for future home visits. Requires Authority approval.</p>
                         <div class="form-container">
                             <div class="form-group">
-                                <label>Proposed Leave Date *</label>
+                                <label>Proposed Leave Date * (Tomorrow onwards)</label>
                                 <input type="date" class="form-control" [(ngModel)]="leaveDate" />
                             </div>
                             <div class="form-row">
@@ -53,19 +53,20 @@
                         <p class="section-desc">Use this when you are actually leaving the hostel today.</p>
                         <div class="form-container">
                             <div class="form-group">
-                                <label>Departure Date</label>
-                                <input type="date" class="form-control" [(ngModel)]="markDate" />
+                                <label>Departure Date (Auto-generated)</label>
+                                <input type="date" class="form-control" [(ngModel)]="markDate" readonly />
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Departure Time</label>
-                                    <input type="time" class="form-control" [(ngModel)]="markTime" />
+                                    <label>Departure Time (Auto-generated)</label>
+                                    <input type="time" class="form-control" [(ngModel)]="markTime" readonly />
                                 </div>
                                 <div class="form-group">
                                     <label>Place / Hometown</label>
                                     <input class="form-control" [(ngModel)]="markPlace" placeholder="e.g. Kochi" />
                                 </div>
                             </div>
+
                             <button class="btn-primary btn-record" (click)="submitMarking()"
                                 [disabled]="!markDate || !markPlace || loading">
                                 {{ loading ? 'Recording...' : ' Mark Home-going Now' }}

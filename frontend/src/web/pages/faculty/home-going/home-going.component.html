@@ -11,8 +11,14 @@
                 </div>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>Leave Date</label>
-                        <input type="date" class="form-control" [(ngModel)]="homeGoingForm.leaveDate" />
+                        <label>Leave Date & Time (Current)</label>
+                        <input type="datetime-local" class="form-control" [(ngModel)]="homeGoingForm.leaveDate"
+                            readonly />
+                        <span class="hint">Automatically set to current time.</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Expected Return Date & Time</label>
+                        <input type="datetime-local" class="form-control" [(ngModel)]="homeGoingForm.returnDate" />
                     </div>
                     <div class="form-group">
                         <label>Destination</label>
@@ -20,10 +26,11 @@
                             [(ngModel)]="homeGoingForm.place" />
                     </div>
                     <div class="form-group full-width">
-                        <textarea class="form-control" rows="2" placeholder="Optional"
+                        <textarea class="form-control" rows="2" placeholder="Reason (Optional)"
                             [(ngModel)]="homeGoingForm.reason"></textarea>
                     </div>
                 </div>
+
                 <button class="primary-btn mt-16" (click)="submitHomeGoing()">
                     Mark Home Going <i class="bi bi-geo-alt-fill ml-8"></i>
                 </button>

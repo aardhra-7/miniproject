@@ -23,7 +23,16 @@ const hostelSettingsSchema = new mongoose.Schema({
     minMessCutDays: {
         type: Number,
         default: 3
+    },
+    openTime: {
+        type: String,
+        default: '06:00'
+    },
+    closeTime: {
+        type: String,
+        default: '21:30'
     }
+
 }, {
     timestamps: true
 });

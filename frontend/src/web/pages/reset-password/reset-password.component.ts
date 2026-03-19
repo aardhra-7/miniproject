@@ -20,6 +20,8 @@ export class ResetPasswordComponent implements OnInit {
   showPassword = false;
   showConfirmPassword = false;
 
+  passwordStrength: 'Weak' | 'Medium' | 'Strong' = 'Weak';
+
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
@@ -30,6 +32,25 @@ export class ResetPasswordComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
     }, { validator: this.passwordMatchValidator });
+
+    this.resetForm.get('password')?.valueChanges.subscribe(val => {
+      this.passwordStrength = this.checkStrength(val);
+    });
+  }
+
+  checkStrength(p: string): 'Weak' | 'Medium' | 'Strong' {
+    if (!p) return 'Weak';
+    const hasLetters = /[a-zA-Z]/.test(p);
+    const hasNumbers = /[0-9]/.test(p);
+    const hasScl = /[!@#$%^&*(),.?":{}|<>]/.test(p);
+    const len = p.length;
+
+    if (len >= 8 && hasLetters && hasNumbers && hasScl) return 'Strong';
+    if (len >= 6 && (hasLetters || hasNumbers)) {
+      if (hasLetters && hasNumbers) return 'Medium';
+      return 'Weak';
+    }
+    return 'Weak';
   }
 
   ngOnInit() {
@@ -41,6 +62,10 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.passwordStrength === 'Weak') {
+      this.error = 'Password must be at least Medium strength.';
+      return;
+    }
     if (this.resetForm.valid) {
       this.isLoading = true;
       this.error = '';
@@ -58,4 +83,5 @@ export class ResetPasswordComponent implements OnInit {
       });
     }
   }
+
 }

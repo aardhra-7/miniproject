@@ -20,6 +20,8 @@ export class SecuritySettingsComponent implements OnInit {
   longitude = 0;
   returnRadius = 100;
   minMessCutDays = 3;
+  openTime = '06:00';
+  closeTime = '21:30';
   transferUserId = '';
   loading = false;
   transferLoading = false;
@@ -46,6 +48,8 @@ export class SecuritySettingsComponent implements OnInit {
           this.longitude = res.settings.locationCoordinates?.longitude || 0;
           this.returnRadius = res.settings.returnRadius || 100;
           this.minMessCutDays = res.settings.minMessCutDays || 3;
+          this.openTime = res.settings.openTime || '06:00';
+          this.closeTime = res.settings.closeTime || '21:30';
         }
       },
       error: () => { }
@@ -59,8 +63,11 @@ export class SecuritySettingsComponent implements OnInit {
     const body: any = {
       locationCoordinates: { latitude: this.latitude, longitude: this.longitude },
       returnRadius: this.returnRadius,
-      minMessCutDays: this.minMessCutDays
+      minMessCutDays: this.minMessCutDays,
+      openTime: this.openTime,
+      closeTime: this.closeTime
     };
+
 
     if (this.email) body.email = this.email;
     if (this.password) body.password = this.password;

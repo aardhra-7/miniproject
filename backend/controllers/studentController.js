@@ -75,15 +75,45 @@ exports.markOutgoing = async (req, res) => {
 // Request home going 
 exports.requestHomeGoing = async (req, res) => {
   try {
-    const { leaveDate, time, place } = req.body;
+    const { leaveDate, time, place, reason } = req.body;
+
+    // 1. Date Validation: must be tomorrow onwards
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(leaveDate);
+    if (selectedDate <= today) {
+      return res.status(400).json({ message: 'Home-going request can only be from tomorrow onwards.' });
+    }
+
+    // 2. Open Time Validation
+    const settings = await HostelSettings.findOne({ hostelName: req.user.hostelName });
+    if (settings) {
+      const { openTime, closeTime } = settings;
+      const now = new Date();
+      const currentH = now.getHours();
+      const currentM = now.getMinutes();
+      const currentTotal = currentH * 60 + currentM;
+
+      const [oh, om] = (openTime || '06:00').split(':').map(Number);
+      const [ch, cm] = (closeTime || '21:30').split(':').map(Number);
+      const openTotal = oh * 60 + om;
+      const closeTotal = ch * 60 + cm;
+
+      if (currentTotal >= openTotal && currentTotal < closeTotal) {
+        return res.status(400).json({
+          message: `Hostel is currently open (${openTime} to ${closeTime}). Please marking outgoing instead of requesting home-going.`
+        });
+      }
+    }
 
     const homeGoing = new HomeGoing({
       student: req.user._id,
       studentName: req.user.name,
       roomNumber: req.user.roomNumber,
       leaveDate: new Date(leaveDate),
-      time,
+      time: time || '00:00',
       place,
+      reason,
       recordingType: 'request',
       status: 'pending'
     });
@@ -93,6 +123,7 @@ exports.requestHomeGoing = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+
 };
 
 // Mark home going 
@@ -121,7 +152,7 @@ exports.markHomeGoing = async (req, res) => {
 // Mark return
 exports.markReturn = async (req, res) => {
   try {
-    
+
     const { type, requestId, latitude, longitude, returnDate, returnTime } = req.body;
 
     const now = new Date();
@@ -135,27 +166,28 @@ exports.markReturn = async (req, res) => {
     const settings = await HostelSettings.findOne({ hostelName: req.user.hostelName });
 
     const HOSTEL_LAT = settings?.locationCoordinates?.latitude !== undefined
-      ? settings.locationCoordinates.latitude
+      ? parseFloat(settings.locationCoordinates.latitude.toFixed(4))
       : parseFloat(process.env.HOSTEL_LAT || '9.4265');
 
     const HOSTEL_LON = settings?.locationCoordinates?.longitude !== undefined
-      ? settings.locationCoordinates.longitude
+      ? parseFloat(settings.locationCoordinates.longitude.toFixed(4))
       : parseFloat(process.env.HOSTEL_LON || '76.9246');
 
     const ALLOWED_RADIUS = settings?.returnRadius || 200;
 
-    const latNum = parseFloat(latitude);
-const lonNum = parseFloat(longitude);
+    const latNum = parseFloat(parseFloat(latitude).toFixed(4));
+    const lonNum = parseFloat(parseFloat(longitude).toFixed(4));
 
-if (isNaN(latNum) || isNaN(lonNum)) {
-  return res.status(400).json({ message: 'Invalid GPS coordinates' });
-}
+    if (isNaN(latNum) || isNaN(lonNum)) {
+      return res.status(400).json({ message: 'Invalid GPS coordinates' });
+    }
 
-console.log("USER:", latNum, lonNum);
-console.log("HOSTEL:", HOSTEL_LAT, HOSTEL_LON);
+    console.log("USER:", latNum, lonNum);
+    console.log("HOSTEL:", HOSTEL_LAT, HOSTEL_LON);
 
-const distance = calculateDistance(latNum, lonNum, HOSTEL_LAT, HOSTEL_LON);
-console.log("DISTANCE:", distance);
+    const distance = calculateDistance(latNum, lonNum, HOSTEL_LAT, HOSTEL_LON);
+
+    console.log("DISTANCE:", distance);
     const isWithinPremises = distance <= ALLOWED_RADIUS;
 
     if (!isWithinPremises) {
@@ -168,6 +200,22 @@ console.log("DISTANCE:", distance);
     let record;
 
     if (type === 'outgoing') {
+      record = await Outgoing.findById(requestId);
+      if (!record) return res.status(404).json({ message: 'Record not found' });
+
+      // Time validation
+      const outTime = new Date(record.date);
+      const [h, m] = record.timeLeaving.split(':');
+      outTime.setHours(parseInt(h), parseInt(m));
+
+      const backTime = new Date(returnDate);
+      const [rh, rm] = (returnTime || currentTime).split(':');
+      backTime.setHours(parseInt(rh), parseInt(rm));
+
+      if (backTime < outTime) {
+        return res.status(400).json({ message: 'Return time cannot be before going time' });
+      }
+
       record = await Outgoing.findByIdAndUpdate(
         requestId,
         {
@@ -181,6 +229,22 @@ console.log("DISTANCE:", distance);
         { new: true }
       );
     } else {
+      record = await HomeGoing.findById(requestId);
+      if (!record) return res.status(404).json({ message: 'Record not found' });
+
+      // Time validation
+      const outTime = new Date(record.leaveDate);
+      const [h, m] = (record.time || "00:00").split(':');
+      outTime.setHours(parseInt(h), parseInt(m));
+
+      const backTime = new Date(returnDate);
+      const [rh, rm] = (returnTime || currentTime).split(':');
+      backTime.setHours(parseInt(rh), parseInt(rm));
+
+      if (backTime < outTime) {
+        return res.status(400).json({ message: 'Return time cannot be before going time' });
+      }
+
       record = await HomeGoing.findByIdAndUpdate(
         requestId,
         {
@@ -192,6 +256,7 @@ console.log("DISTANCE:", distance);
         { new: true }
       );
     }
+
 
     if (!record) {
       return res.status(404).json({ message: 'Record not found' });

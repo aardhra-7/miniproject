@@ -28,6 +28,13 @@
                         <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
                     </button>
                 </div>
+                <div class="strength-indicator" *ngIf="loginForm.get('password')?.value">
+                    <span [class]="passwordStrength.toLowerCase()">
+                        {{ passwordStrength }} Password
+                    </span>
+                </div>
+
+
             </div>
 
             <div *ngIf="errorMessage" class="error-msg">
@@ -39,9 +46,7 @@
             </button>
         </form>
 
-        <div *ngIf="role === 'admin'" class="admin-reg">
-            New hostel? <a routerLink="/register-admin">Register Administrator</a>
-        </div>
+
 
         <button class="btn-back" (click)="goBack()">
             <i class="bi bi-arrow-left"></i> Back to roles

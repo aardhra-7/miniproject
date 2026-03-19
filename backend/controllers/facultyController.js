@@ -107,11 +107,17 @@ exports.markHomeGoing = async (req, res) => {
   try {
     const { leaveDate, returnDate, reason, place } = req.body;
     const user = await User.findById(req.user._id);
+
+    if (new Date(returnDate) <= new Date(leaveDate)) {
+      return res.status(400).json({ success: false, message: 'Return time must be after leaving time.' });
+    }
+
     const entry = new HomeGoing({
       student: req.user._id,
       studentName: user.name,
       leaveDate,
       returnDate,
+
       reason,
       place,
       status: 'marked' // No approval required for faculty

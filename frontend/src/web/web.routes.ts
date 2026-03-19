@@ -6,8 +6,8 @@ export const WEB_ROUTES: Routes = [
   { path: 'splash', loadComponent: () => import('./pages/splash/splash.component').then(m => m.SplashComponent) },
   { path: 'role-select', loadComponent: () => import('./pages/role-selection/role-selection.component').then(m => m.RoleSelectComponent) },
   { path: 'login', loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent) },
-  { path: 'register-admin', loadComponent: () => import('./pages/login/register-admin/register-admin.component').then(m => m.RegisterAdminComponent) },
   { path: 'reset-password/:token', loadComponent: () => import('./pages/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
+
   {
     path: 'student',
     canActivate: [AuthGuard],

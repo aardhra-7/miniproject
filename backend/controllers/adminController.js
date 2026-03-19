@@ -149,7 +149,8 @@ exports.getMessCuts = async (req, res) => {
 // Security Settings — update credentials + hostel settings
 exports.updateSecuritySettings = async (req, res) => {
   try {
-    const { email, password, locationCoordinates, returnRadius, minMessCutDays } = req.body;
+    const { email, password, locationCoordinates, returnRadius, minMessCutDays, openTime, closeTime } = req.body;
+
     const fs = require('fs');
     const path = require('path');
 
@@ -162,11 +163,14 @@ exports.updateSecuritySettings = async (req, res) => {
     await admin.save();
 
     // 2. Update hostel settings
-    if (locationCoordinates || returnRadius !== undefined || minMessCutDays !== undefined) {
+    if (locationCoordinates || returnRadius !== undefined || minMessCutDays !== undefined || openTime || closeTime) {
       const settingsUpdate = {};
       if (locationCoordinates) settingsUpdate.locationCoordinates = locationCoordinates;
       if (returnRadius !== undefined) settingsUpdate.returnRadius = returnRadius;
       if (minMessCutDays !== undefined) settingsUpdate.minMessCutDays = minMessCutDays;
+      if (openTime) settingsUpdate.openTime = openTime;
+      if (closeTime) settingsUpdate.closeTime = closeTime;
+
 
       await HostelSettings.findOneAndUpdate(
         { admin: admin._id },

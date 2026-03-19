@@ -24,7 +24,7 @@ export class HomeGoingComponent implements OnInit {
 
   // Mark Form
   markDate = new Date().toISOString().split('T')[0];
-  markTime = '';
+  markTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   markPlace = '';
 
   loading = false;
@@ -51,6 +51,20 @@ export class HomeGoingComponent implements OnInit {
 
   submitRequest() {
     if (!this.leaveDate || !this.place) return;
+
+    // Next day validation
+    const selected = new Date(this.leaveDate);
+    selected.setHours(0, 0, 0, 0);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    if (selected < tomorrow) {
+      this.msg = 'Home-going request must be for tomorrow onwards.';
+      this.msgType = 'error';
+      return;
+    }
+
     this.loading = true;
     this.msg = '';
 
@@ -76,7 +90,11 @@ export class HomeGoingComponent implements OnInit {
   }
 
   submitMarking() {
-    if (!this.markDate || !this.markPlace) return;
+    // Current time is always used for marking
+    this.markDate = new Date().toISOString().split('T')[0];
+    this.markTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    if (!this.markPlace) return;
     this.loading = true;
     this.msg = '';
 
@@ -106,5 +124,8 @@ export class HomeGoingComponent implements OnInit {
     this.place = '';
     this.reason = '';
     this.markPlace = '';
+    this.markDate = new Date().toISOString().split('T')[0];
+    this.markTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   }
+
 }

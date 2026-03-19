@@ -201,3 +201,26 @@ exports.publishNotification = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// Get all notifications (authority view)
+exports.getNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find({ sender: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate('sender', 'name userId');
+    res.json({ success: true, notifications });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete a notification
+exports.deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await Notification.findOneAndDelete({ _id: id, sender: req.user._id });
+    if (!notification) return res.status(404).json({ message: 'Notification not found' });
+    res.json({ success: true, message: 'Notification deleted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

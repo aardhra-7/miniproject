@@ -15,5 +15,8 @@ router.get('/students', ctrl.getStudents);
 router.get('/faculty', ctrl.getFaculty);
 router.get('/reports', ctrl.getReports);
 router.post('/publish-notification', ctrl.publishNotification);
+router.get('/notifications', ctrl.getNotifications);
+router.delete('/notifications/:id', ctrl.deleteNotification);
+
 
 module.exports = router;

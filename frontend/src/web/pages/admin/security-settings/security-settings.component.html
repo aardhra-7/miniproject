@@ -66,6 +66,26 @@
                 </div>
             </div>
 
+            <!-- Hostel Hours Settings -->
+            <div class="card security-card">
+                <div class="card-icon"></div>
+                <h3>Hostel Hours Configuration</h3>
+                <p class="subtitle">Set the time when the hostel opens and closes for the day.</p>
+
+                <div class="form-container">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Hostel Open Time</label>
+                            <input type="time" class="form-control" [(ngModel)]="openTime" />
+                        </div>
+                        <div class="form-group">
+                            <label>Hostel Close Time</label>
+                            <input type="time" class="form-control" [(ngModel)]="closeTime" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Admin Transfer -->
             <div class="card security-card danger-card">
                 <div class="card-icon"> </div>

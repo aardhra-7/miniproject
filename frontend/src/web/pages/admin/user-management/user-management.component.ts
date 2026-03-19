@@ -27,7 +27,7 @@ export class UserManagementComponent implements OnInit {
 
   constructor(private fb: FormBuilder, private http: HttpClient, private auth: AuthService) {
     this.userForm = this.fb.group({
-      userId: ['', Validators.required],
+      userId: [{ value: '', disabled: true }, Validators.required],
       name: ['', Validators.required],
       role: ['student', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -48,7 +48,33 @@ export class UserManagementComponent implements OnInit {
       guardiansPhone: [''],
       address: ['']
     });
+
+    // Auto-generate User ID
+    this.userForm.get('role')?.valueChanges.subscribe(() => this.updateGeneratedUserId());
+    this.userForm.get('phone')?.valueChanges.subscribe(() => this.updateGeneratedUserId());
+    this.userForm.get('admissionNo')?.valueChanges.subscribe(() => this.updateGeneratedUserId());
   }
+
+  updateGeneratedUserId() {
+    if (this.editMode) return;
+    const role = this.userForm.get('role')?.value;
+    const phone = this.userForm.get('phone')?.value || '';
+    const admissionNo = this.userForm.get('admissionNo')?.value || '';
+
+    let generatedId = '';
+    if (role === 'student') {
+      if (admissionNo) generatedId = `STU-${admissionNo}`;
+    } else if (role === 'faculty') {
+      if (phone.length >= 4) generatedId = `FAC-${phone.slice(-4)}`;
+    } else if (role === 'authority') {
+      if (phone.length >= 4) generatedId = `AUTH-${phone.slice(-4)}`;
+    } else if (role === 'admin') {
+      if (phone.length >= 4) generatedId = `ADM-${phone.slice(-4)}`;
+    }
+
+    this.userForm.get('userId')?.setValue(generatedId);
+  }
+
 
   ngOnInit() { this.loadUsers(); }
 
@@ -77,7 +103,7 @@ export class UserManagementComponent implements OnInit {
     this.editId = '';
     this.userForm.reset({ role: 'student' });
     this.userForm.get('password')?.setValidators(Validators.required);
-    this.userForm.get('userId')?.enable();
+    this.userForm.get('userId')?.disable();
     this.saveError = '';
     this.showModal = true;
   }
@@ -98,6 +124,7 @@ export class UserManagementComponent implements OnInit {
     this.saveError = '';
     this.showModal = true;
   }
+
 
   saveUser() {
     if (this.userForm.invalid) return;

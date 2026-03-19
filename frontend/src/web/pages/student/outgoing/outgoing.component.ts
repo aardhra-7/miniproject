@@ -15,7 +15,8 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class OutgoingComponent implements OnInit {
   date = new Date().toISOString().split('T')[0];
-  timeLeaving = '';
+  timeLeaving = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
   place = '';
   loading = false;
   msg = '';
