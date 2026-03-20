@@ -78,10 +78,27 @@ exports.getSelfAttendanceHistory = async (req, res) => {
 exports.requestMessCut = async (req, res) => {
   try {
     const { startDate, endDate, reason } = req.body;
+
+    // Check overlap
+    const existingOverlap = await MessCut.findOne({
+      student: req.user._id,
+      status: { $ne: 'rejected' },
+      $or: [
+        { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }
+      ]
+    });
+
+    if (existingOverlap) {
+      return res.status(400).json({
+        success: false,
+        message: `Mess cut overlap detected with an existing record (${existingOverlap.startDate.toDateString()} to ${existingOverlap.endDate.toDateString()}).`
+      });
+    }
+
     const messCut = new MessCut({
       student: req.user._id,
-      startDate,
-      endDate,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       reason,
       status: 'pending'
     });

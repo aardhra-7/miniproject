@@ -32,21 +32,27 @@ exports.getDashboardStats = async (req, res) => {
     const pendingMessCuts = await MessCut.countDocuments({ status: 'pending' });
     const pendingHomeGoings = await HomeGoing.countDocuments({ status: 'pending' });
 
-    // Weekly Pending (Requests from the last 7 days)
+    const totalPending = pendingMessCuts + pendingHomeGoings;
+
+    // 3. Weekly Activity
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
     const weeklyPending = await Promise.all([
       MessCut.countDocuments({ status: 'pending', createdAt: { $gte: sevenDaysAgo } }),
       HomeGoing.countDocuments({ status: 'pending', createdAt: { $gte: sevenDaysAgo } })
     ]).then(counts => counts.reduce((a, b) => a + b, 0));
 
-    const totalPending = pendingMessCuts + pendingHomeGoings;
+    const weeklyOutgoings = await Outgoing.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+    const weeklyHomeGoings = await HomeGoing.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
 
     res.json({
       success: true,
       stats: {
         today: { todayOutgoings, todayHomeGoings, todayReturns, activeMessCuts },
-        pending: { pendingMessCuts, pendingHomeGoings, totalPending, weeklyPending }
+        pending: { pendingMessCuts, pendingHomeGoings, totalPending, weeklyPending },
+        weekly: { weeklyOutgoings, weeklyHomeGoings }
       }
     });
   } catch (error) {
@@ -128,9 +134,22 @@ exports.deleteUser = async (req, res) => {
 exports.getReturnTracking = async (req, res) => {
   try {
     const outgoings = await Outgoing.find()
-      .populate('student', 'name roomNumber admissionNo')
-      .sort({ createdAt: -1 });
-    res.json({ success: true, outgoings });
+      .populate('student', 'name roomNumber admissionNo userId')
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    const homegoings = await HomeGoing.find({ status: { $in: ['active', 'returned'] } })
+      .populate('student', 'name roomNumber admissionNo userId')
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    // Combine and sort by date
+    const combined = [
+      ...outgoings.map(o => ({ ...o._doc, logType: 'Outgoing' })),
+      ...homegoings.map(h => ({ ...h._doc, logType: 'HomeGoing', timeLeaving: h.time }))
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ success: true, tracking: combined });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

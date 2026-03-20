@@ -28,11 +28,7 @@
                         <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
                     </button>
                 </div>
-                <div class="strength-indicator" *ngIf="loginForm.get('password')?.value">
-                    <span [class]="passwordStrength.toLowerCase()">
-                        {{ passwordStrength }} Password
-                    </span>
-                </div>
+
 
 
             </div>

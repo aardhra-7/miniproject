@@ -296,6 +296,21 @@ exports.requestMessCut = async (req, res) => {
       return res.status(400).json({ message: `Mess cut must be for at least ${minDays} days.` });
     }
 
+    // Validation: No overlapping mess cuts
+    const existingOverlap = await MessCut.findOne({
+      student: req.user._id,
+      status: { $ne: 'rejected' }, // Allow if previously rejected
+      $or: [
+        { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }
+      ]
+    });
+
+    if (existingOverlap) {
+      return res.status(400).json({
+        message: `Mess cut overlap detected with an existing record (${existingOverlap.startDate.toDateString()} to ${existingOverlap.endDate.toDateString()}).`
+      });
+    }
+
     const messCut = new MessCut({
       student: req.user._id,
       startDate: new Date(startDate),

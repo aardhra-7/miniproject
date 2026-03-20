@@ -18,12 +18,10 @@ export class LoginComponent implements OnInit {
   errorMessage = '';
   showPassword = false;
 
-  passwordStrength: 'Weak' | 'Medium' | 'Strong' | '' = '';
   showForgotModal = false;
   resetEmail = '';
   resetMsg = '';
   isResetError = false;
-
 
   constructor(
     private fb: FormBuilder,
@@ -34,22 +32,6 @@ export class LoginComponent implements OnInit {
       userId: ['', Validators.required],
       password: ['', Validators.required]
     });
-
-    this.loginForm.get('password')?.valueChanges.subscribe(val => {
-      this.passwordStrength = val ? this.checkStrength(val) : '';
-    });
-  }
-
-  checkStrength(p: string): 'Weak' | 'Medium' | 'Strong' {
-    if (!p) return 'Weak';
-    const hasLetters = /[a-zA-Z]/.test(p);
-    const hasNumbers = /[0-9]/.test(p);
-    const hasScl = /[!@#$%^&*(),.?":{}|<>]/.test(p);
-    const len = p.length;
-
-    if (len >= 8 && hasLetters && hasNumbers && hasScl) return 'Strong';
-    if (len >= 6 && hasLetters && hasNumbers) return 'Medium';
-    return 'Weak';
   }
 
 

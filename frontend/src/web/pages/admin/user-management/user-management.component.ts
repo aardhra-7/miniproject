@@ -24,6 +24,8 @@ export class UserManagementComponent implements OnInit {
   userForm: FormGroup;
   saving = false;
   saveError = '';
+  showViewModal = false;
+  selectedUser: any = null;
 
   constructor(private fb: FormBuilder, private http: HttpClient, private auth: AuthService) {
     this.userForm = this.fb.group({
@@ -147,6 +149,11 @@ export class UserManagementComponent implements OnInit {
         this.saving = false;
       }
     });
+  }
+
+  viewUser(u: any) {
+    this.selectedUser = u;
+    this.showViewModal = true;
   }
 
   deleteUser(id: string) {

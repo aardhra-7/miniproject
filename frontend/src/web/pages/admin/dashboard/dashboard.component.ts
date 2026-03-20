@@ -60,7 +60,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   loadReturnTracking() {
     this.http.get<any>('http://localhost:5000/api/admin/return-tracking', this.headers).subscribe({
       next: (res) => {
-        this.returnTracking = (res.outgoings || []).slice(0, 5);
+        this.returnTracking = (res.tracking || []).slice(0, 50);
       },
       error: () => { }
     });
